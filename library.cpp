@@ -32,14 +32,12 @@ class User
         string password;
 
     public:
-        User(string nameString = "Abhishek", string idString = "200026", string passwordString = "1234")
-        {
-            name = nameString;
-            id = idString;
-            password = passwordString;
-        }
         friend class UserDatabase;
+        friend class Professor;
+        friend class Student;
+        friend class Librarian;
         virtual void Instructions();
+        virtual string className() = 0;
 };
 
 class UserDatabase
@@ -49,7 +47,26 @@ class UserDatabase
     
     public:
         UserDatabase();
-        int Add();
+        void Add(string nameString, string idString, string passwordString, string className)
+        {
+            if(className == "student")
+            {
+                Student tempUser = Student(nameString, idString, passwordString);
+                users.push_back(tempUser);
+            }
+            else if(className == "professors")
+            {
+                Student tempUser = Student(nameString, idString, passwordString);
+                users.push_back(tempUser);
+            }
+            else if(className == "librarian")
+            {
+                Student tempUser = Student(nameString, idString, passwordString);
+                users.push_back(tempUser);
+            }
+            else
+                cout << className << " class name doesn't exist!" << endl;
+        }
         int Update();
         int Delete();
         int Search();
@@ -67,7 +84,7 @@ class UserDatabase
                 cout << "Please enter your user password: ";
                 cin >> userPassword;
                 User *userPointer = (User *)calloc(1, sizeof(User));
-                for (User user : users)
+                for (auto user : users)
                 {
                     if (userName.compare(user.name) == 0 && userPassword.compare(user.password) == 0)
                     {
@@ -96,10 +113,11 @@ class Professor: public User
         vector<Book> listOfBooks;
     
     public:
-        Professor(int fine, vector<Book> list)
+        Professor(string nameString = "Abhishek", string idString = "200026", string passwordString = "1234")
         {
-            Fine_amount = fine;
-            listOfBooks = list;
+            name = nameString;
+            id = idString;
+            password = passwordString;
         }
         int Calculate_fine();
         int Clear_fine_amount();
@@ -138,6 +156,10 @@ class Professor: public User
                     break;
                 }
             }
+        }
+        string className()
+        {
+            return "librarian";
         }
 };
 
@@ -148,10 +170,11 @@ class Student: public User
         vector<Book> listOfBooks;
     
     public:
-        Student(int fine, vector<Book> list)
+        Student(string nameString = "Abhishek", string idString = "200026", string passwordString = "1234")
         {
-            Fine_amount = fine;
-            listOfBooks = list;
+            name = nameString;
+            id = idString;
+            password = passwordString;
         }
         int Calculate_fine();
         int Clear_fine_amount();
@@ -191,12 +214,21 @@ class Student: public User
                 }
             }
         }
+        string className()
+        {
+            return "student";
+        }
 };
 
 class Librarian: public User
 {
     public:
-        Librarian();
+        Librarian(string nameString = "Abhishek", string idString = "200026", string passwordString = "1234")
+        {
+            name = nameString;
+            id = idString;
+            password = passwordString;
+        }
         void Add(const User &);
         // void Add(const Book &);
         // void Update();
@@ -241,6 +273,10 @@ class Librarian: public User
                 }
             }
         }
+        string className()
+        {
+            return "librarian";
+        }
 };
 
 class BookDatabase
@@ -265,16 +301,20 @@ int main ()
         User* user = userDatabase.Login();
         if(user != NULL)
         {
-            string type = typeid(user).name();
-            if(type=="Professor")
-                dynamic_cast<Professor *>(user)->Instructions();
-            else if(type=="Student")
-                dynamic_cast<Student *>(user)->Instructions();
-            else
-                dynamic_cast<Librarian *>(user)->Instructions();
+            // string type = typeid(user).name();
+            // if(type=="Professor")
+            //     dynamic_cast<Professor *>(user)->Instructions();
+            // else if(type=="Student")
+            //     dynamic_cast<Student *>(user)->Instructions();
+            // else
+            //     dynamic_cast<Librarian *>(user)->Instructions();
+            user->Instructions();
         }
         else
+        {
+            cout << "Closing library.cpp..." << endl;
             return 0;
+        }    
         delete user;
     }
 }
