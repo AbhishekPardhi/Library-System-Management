@@ -20,8 +20,21 @@ class Book
             ISBN = ISBNString;
             Publication = PublicationString;
         }
-        int Book_Request();
-        int Show_duedate();
+        // int Book_Request();
+        // int Show_duedate();
+};
+
+class BookDatabase
+{
+    private:
+        static vector<Book> books;
+    
+    public:
+        // int Add();
+        // int Update();
+        // int Delete();
+        // int Search();
+        // void Display();
 };
 
 class User
@@ -36,74 +49,11 @@ class User
         friend class Professor;
         friend class Student;
         friend class Librarian;
-        virtual void Instructions();
-        virtual string className() = 0;
-};
-
-class UserDatabase
-{
-    private:
-        vector<User> users;
-    
-    public:
-        UserDatabase();
-        void Add(string nameString, string idString, string passwordString, string className)
+        virtual void Instructions()
         {
-            if(className == "student")
-            {
-                Student tempUser = Student(nameString, idString, passwordString);
-                users.push_back(tempUser);
-            }
-            else if(className == "professors")
-            {
-                Student tempUser = Student(nameString, idString, passwordString);
-                users.push_back(tempUser);
-            }
-            else if(className == "librarian")
-            {
-                Student tempUser = Student(nameString, idString, passwordString);
-                users.push_back(tempUser);
-            }
-            else
-                cout << className << " class name doesn't exist!" << endl;
+            cout << "User instructions..." << endl;
         }
-        int Update();
-        int Delete();
-        int Search();
-        void Display();
-        User* Login()
-        {
-            string userName;
-            string userPassword;
-            int loginAttempt = 0;
-            cout << "This is a Library Management System in C++" << endl;
-            while (loginAttempt < 5)
-            {
-                cout << "Please enter your user name: ";
-                cin >> userName;
-                cout << "Please enter your user password: ";
-                cin >> userPassword;
-                User *userPointer = (User *)calloc(1, sizeof(User));
-                for (auto user : users)
-                {
-                    if (userName.compare(user.name) == 0 && userPassword.compare(user.password) == 0)
-                    {
-                        cout << "Welcome " << user.name << "!!" << endl
-                             << "Thank you for logging in." << endl
-                             << endl;
-                        cout << "";
-                        userPointer = &user;
-                        return userPointer;
-                    }
-                }
-                cout << "Invalid login attempt." << endl
-                     << "Please check your credentials." << endl
-                     << endl;
-                loginAttempt++;
-            }
-            cout << "Too many login attempts! The program will now terminate.";
-            return 0;
-        }
+        // virtual string className();
 };
 
 class Professor: public User
@@ -119,8 +69,14 @@ class Professor: public User
             id = idString;
             password = passwordString;
         }
-        int Calculate_fine();
-        int Clear_fine_amount();
+        void Calculate_fine()
+        {
+            cout << "calculating fine" << endl;
+        }
+        void Clear_fine_amount()
+        {
+            cout << "clearing fine amount" << endl;
+        }
         void Instructions()
         {
             int ins;
@@ -176,14 +132,20 @@ class Student: public User
             id = idString;
             password = passwordString;
         }
-        int Calculate_fine();
-        int Clear_fine_amount();
+        void Calculate_fine()
+        {
+            cout << "calculating fine" << endl;
+        }
+        void Clear_fine_amount()
+        {
+            cout << "clearing fine amount" << endl;
+        }
         void Instructions()
         {
             int ins;
             string pls = "Please type instruction number :";
             string help = "---Type '0' to show set of instructions---";
-            string instructionsSet = ""; //type -1 to logout
+            string instructionsSet = "1.Calculate Fine\n2.Clear Fine Amount\n."; //type -1 to logout
             string wrong = "Wrong instruction number!";
             while(true)
             {
@@ -229,14 +191,14 @@ class Librarian: public User
             id = idString;
             password = passwordString;
         }
-        void Add(const User &);
+        // void Add(const User &);
         // void Add(const Book &);
         // void Update();
         // void Delete();
-        void listAllUsers(UserDatabase* userDatabase)
-        {
-            userDatabase->Display();
-        }
+        // void listAllUsers(UserDatabase* userDatabase)
+        // {
+        //     userDatabase->Display();
+        // }
         void Instructions()
         {
             int ins;
@@ -279,17 +241,82 @@ class Librarian: public User
         }
 };
 
-class BookDatabase
+class UserDatabase
 {
     private:
-        vector<Book> books;
+        vector<User*> users;
     
     public:
-        int Add();
-        int Update();
-        int Delete();
-        int Search();
-        void Display();
+        UserDatabase()
+        {
+            Add("abhishek", "200026", "1234", "student");
+        }
+        void Add(string nameString, string idString, string passwordString, string className)
+        {
+            if(className == "student")
+            {
+                Student studentObject = Student(nameString, idString, passwordString);
+                User *userPointer = (User *)malloc(1 * sizeof(User));
+                *userPointer = studentObject;
+                users.push_back(userPointer);
+            }
+            else if(className == "professors")
+            {
+                Professor professorObject = Professor(nameString, idString, passwordString);
+                User *userPointer = (User *)malloc(1 * sizeof(User));
+                *userPointer = professorObject;
+                users.push_back(userPointer);
+            }
+            else if(className == "librarian")
+            {
+                Librarian librarianObject = Librarian(nameString, idString, passwordString);
+                User *userPointer = (User *)malloc(1 * sizeof(User));
+                *userPointer = librarianObject;
+                users.push_back(userPointer);
+            }
+            else
+                cout << "class name: \"" << className << "\" doesn't exist!" << endl;
+        }
+        // void Update();
+        // void Delete();
+        // void Search();
+        // void Display();
+        User* Login()
+        {
+            string userName;
+            string userPassword;
+            int loginAttempt = 0;
+            cout << "This is a Library Management System in C++" << endl;
+            while (loginAttempt < 5)
+            {
+                cout << "Please enter your user name: ";
+                cin >> userName;
+                cout << "Please enter your user password: ";
+                cin >> userPassword;
+                //User *userPointer = (User *)calloc(1, sizeof(User));
+                User *userPointer;
+                for (auto user : users)
+                {
+                    if (userName.compare(user->name) == 0 && userPassword.compare(user->password) == 0)
+                    {
+                        cout << "Welcome " << user->name << "!!" << endl
+                             << "Thank you for logging in." << endl
+                             << endl;
+                        cout << "";
+                        userPointer = user;
+                        return userPointer;
+                    }
+                }
+                cout << "Invalid login attempt." << endl
+                     << "Please check your credentials." << endl
+                     << endl;
+                loginAttempt++;
+                //delete userPointer;
+            }
+            cout << "Too many login attempts! The program will now terminate." << endl;
+            User* null_ptr = NULL;
+            return null_ptr; //make it dynamic, put time limit
+        }
 };
 
 int main ()
@@ -301,13 +328,6 @@ int main ()
         User* user = userDatabase.Login();
         if(user != NULL)
         {
-            // string type = typeid(user).name();
-            // if(type=="Professor")
-            //     dynamic_cast<Professor *>(user)->Instructions();
-            // else if(type=="Student")
-            //     dynamic_cast<Student *>(user)->Instructions();
-            // else
-            //     dynamic_cast<Librarian *>(user)->Instructions();
             user->Instructions();
         }
         else
@@ -315,6 +335,6 @@ int main ()
             cout << "Closing library.cpp..." << endl;
             return 0;
         }    
-        delete user;
+        //delete user;
     }
 }
