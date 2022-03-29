@@ -51,7 +51,7 @@ class User
         friend class Librarian;
         virtual void Instructions()
         {
-            cout << "User instructions..." << endl;
+            cout << "instructions..." << endl;
         }
         // virtual string className();
 };
@@ -244,7 +244,7 @@ class Librarian: public User
 class UserDatabase
 {
     private:
-        vector<User*> users;
+        vector<User> users;
     
     public:
         UserDatabase()
@@ -255,32 +255,26 @@ class UserDatabase
         {
             if(className == "student")
             {
-                Student studentObject = Student(nameString, idString, passwordString);
-                User *userPointer = (User *)malloc(1 * sizeof(User));
-                *userPointer = studentObject;
-                users.push_back(userPointer);
+                Student tempUser = Student(nameString, idString, passwordString);
+                users.push_back(tempUser);
             }
             else if(className == "professors")
             {
-                Professor professorObject = Professor(nameString, idString, passwordString);
-                User *userPointer = (User *)malloc(1 * sizeof(User));
-                *userPointer = professorObject;
-                users.push_back(userPointer);
+                Student tempUser = Student(nameString, idString, passwordString);
+                users.push_back(tempUser);
             }
             else if(className == "librarian")
             {
-                Librarian librarianObject = Librarian(nameString, idString, passwordString);
-                User *userPointer = (User *)malloc(1 * sizeof(User));
-                *userPointer = librarianObject;
-                users.push_back(userPointer);
+                Student tempUser = Student(nameString, idString, passwordString);
+                users.push_back(tempUser);
             }
             else
-                cout << "class name: \"" << className << "\" doesn't exist!" << endl;
+                cout << className << " class name doesn't exist!" << endl;
         }
-        // void Update();
-        // void Delete();
-        // void Search();
-        // void Display();
+        int Update();
+        int Delete();
+        int Search();
+        void Display();
         User* Login()
         {
             string userName;
@@ -293,17 +287,16 @@ class UserDatabase
                 cin >> userName;
                 cout << "Please enter your user password: ";
                 cin >> userPassword;
-                //User *userPointer = (User *)calloc(1, sizeof(User));
-                User *userPointer;
+                User *userPointer = (User *)calloc(1, sizeof(User));
                 for (auto user : users)
                 {
-                    if (userName.compare(user->name) == 0 && userPassword.compare(user->password) == 0)
+                    if (userName.compare(user.name) == 0 && userPassword.compare(user.password) == 0)
                     {
-                        cout << "Welcome " << user->name << "!!" << endl
+                        cout << "Welcome " << user.name << "!!" << endl
                              << "Thank you for logging in." << endl
                              << endl;
                         cout << "";
-                        userPointer = user;
+                        userPointer = &user;
                         return userPointer;
                     }
                 }
@@ -311,11 +304,11 @@ class UserDatabase
                      << "Please check your credentials." << endl
                      << endl;
                 loginAttempt++;
-                //delete userPointer;
             }
-            cout << "Too many login attempts! The program will now terminate." << endl;
-            User* null_ptr = NULL;
-            return null_ptr; //make it dynamic, put time limit
+            cout << "Too many login attempts! The program will now terminate.";
+            //return NULL; //make it dynamic, put time limit
+            User *nullUser = NULL;
+            return nullUser;
         }
 };
 
@@ -325,7 +318,7 @@ int main ()
     UserDatabase userDatabase;
     while(true)
     {
-        User* user = userDatabase.Login();
+        auto* user = userDatabase.Login();
         if(user != NULL)
         {
             user->Instructions();
@@ -335,6 +328,5 @@ int main ()
             cout << "Closing library.cpp..." << endl;
             return 0;
         }    
-        //delete user;
     }
 }
