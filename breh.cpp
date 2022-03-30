@@ -1,25 +1,21 @@
-#include<iostream>
-#include<vector>
+#include <iostream>
+#include <ctime>
+
 using namespace std;
 
-// vector<int*> vect;
-class A
-{
-    public:
-        vector<int*> vect;
-        void fun()
-        {
-            int a=3;
-            int*b=&a;
-            vect.push_back(b);
-            return;
-        }
-};
+int main() {
+   // current date/time based on current system
+   time_t now = time(0);
 
-int main(void)
-{
-    A a;
-    a.fun();
-    cout << *(a.vect[0]);
-    return 0;
+   //cout << "Number of sec since January 1,1970 is:: " << now << endl;
+
+   tm *ltm = localtime(&now);
+
+   // print various components of tm structure.
+   cout << "Year: " << 1900 + ltm->tm_year<<endl;
+   cout << "Month: "<< 1 + ltm->tm_mon<< endl;
+   cout << "Day: "<< ltm->tm_mday << endl;
+//    cout << "Time: "<< 5+ltm->tm_hour << ":";
+//    cout << 30+ltm->tm_min << ":";
+//    cout << ltm->tm_sec << endl;
 }
