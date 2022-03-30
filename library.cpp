@@ -4,36 +4,194 @@
 #include <ctime>
 using namespace std;
 
+time_t now = time(0);
+    tm *ltm = localtime(&now);
+    // cout << "Year: " << 1900 + ltm->tm_year<<endl;
+    // cout << "Month: "<< 1 + ltm->tm_mon<< endl;
+    // cout << "Day: "<< ltm->tm_mday << endl;
+
 class Book
 {
     public:
+        int dueDate;
+        int dueMonth;
+        int dueYear;
         string Title;
         string Author;
         string ISBN;
         string Publication;
 
-        Book(string TitleString, string AuthorString, string ISBNString, string PublicationString)
+        Book(string TitleString = "", string AuthorString = "", string ISBNString = "", string PublicationString = "")
         {
-            Title = TitleString;
-            Author = AuthorString;
-            ISBN = ISBNString;
-            Publication = PublicationString;
+            this->Title = TitleString;
+            this->Author = AuthorString;
+            this->ISBN = ISBNString;
+            this->Publication = PublicationString;
         }
-        // int Book_Request();
-        // int Show_duedate();
+        void Book_Request(User* user)
+        {
+            if(dueDate == ltm->tm_mday && dueMonth == 1 + ltm->tm_mon && dueYear == 1900 + ltm->tm_year)
+            {
+                dueDate += (user->className() == "student") ? 30 : 60;
+                while(dueDate>30)
+                {
+                    dueMonth++;
+                    if(dueMonth>12)
+                        dueMonth = 1, dueYear++;
+                    dueDate -= 30;
+                }
+                Book *book = new Book;
+                *book = *this;
+                user->AppendListOfBooks(*book);
+            }
+            else
+                cout << "Sorry, this book is not available!" << endl;
+        }
+        void Show_duedate()
+        {
+            cout << "This book will be available from " << this->dueDate << this->dueMonth << this->dueYear << endl;
+            return;
+        }
 };
 
 class BookDatabase
 {
     public:
-        static vector<Book> books;
-    
-        // int Add();
-        // int Update();
-        // int Delete();
-        // int Search();
-        // void Display();
+        vector<Book> books;
+        void Add()
+        {
+            string TitleString, AuthorString, ISBNString, PublicationString;
+            cout << "Type Title :";
+            cin >> TitleString;
+            cout << "Type Author :";
+            cin >> AuthorString;
+            cout << "Type ISBN :";
+            cin >> ISBNString;
+            cout << "Type Publication :";
+            cin >> PublicationString;
+            Book bookObject = Book(TitleString, AuthorString, ISBNString, PublicationString);
+            books.push_back(bookObject);
+        }
+        void Update()
+        {
+            string titleString;
+            string instructionSet = "-1.Return\n1.Change Title\n2.Change Author\n3.Change ISBN\n4.Change Publication";
+            string help = "---Type '0' to show set of instructions---";
+            string wrong = "Wrong instruction number!";
+            string pls = "Type your choice: ";
+            int i, ins;
+            cout << "Type book title: ";
+            cin >> titleString;
+            for (i = 0; i < books.size(); i++)
+            {
+                if(books[i].Title.compare(titleString)==0)
+                    break;
+            }
+            if(i == books.size())
+            {
+                cout << "Book titled as \"" << titleString << "\" doesn't exist!" << endl;
+                return;
+            }
+            while(true)
+            {
+                cout << help << endl
+                    << pls;
+                cin >> ins;
+                switch (ins)
+                {
+                case -1:
+                    return;
+                    break;
+                
+                case 1:
+                {
+                    string newTitle;
+                    cout << "Type new Title :";
+                    cin >> newTitle;
+                    cout << "Successfully changed title of book \"" << books[i].Title << "\" to \"" << newTitle << "\"" << endl;
+                    books[i].Title = newTitle;
+                    break;
+                }
+
+                case 2:
+                {
+                    string newAuthor;
+                    cout << "Type new Author :";
+                    cin >> newAuthor;
+                    cout << "Successfully changed Author of book \"" << books[i].Author << "\" to \"" << newAuthor << "\"" << endl;
+                    books[i].Author = newAuthor;
+                    break;
+                }
+
+                case 3:
+                {
+                    string newISBN;
+                    cout << "Type new ISBN :";
+                    cin >> newISBN;
+                    cout << "Successfully changed ISBN of book \"" << books[i].ISBN << "\" to \"" << newISBN << "\"" << endl;
+                    books[i].ISBN = newISBN;
+                    break;
+                }
+
+                case 4:
+                {
+                    string newPublication;
+                    cout << "Type new Publication :";
+                    cin >> newPublication;
+                    cout << "Successfully changed Publication of book \"" << books[i].Publication << "\" to \"" << newPublication<< "\"" << endl;
+                    books[i].Publication = newPublication;
+                    break;
+                }
+
+                default:
+                    cout << wrong << endl;
+                    break;
+                }
+            }
+        }
+        void Delete(string titleString)
+        {
+            for (int i = 0; i < books.size(); i++)
+            {
+                if(books[i].Title.compare(titleString)==0)
+                {
+                    cout << "Successfully deleted \"" << books[i].Title << " \"" << endl;
+                    books.erase(books.begin() + i);
+                    return;
+                }
+            }
+            cout << "Book titled as \"" << titleString << " \" doesn't exist!" << endl;
+            return;
+        }
+        Book* Search(string titleString)
+        {
+            for (int i = 0; i < books.size(); i++)
+            {
+                if(books[i].Title.compare(titleString)==0)
+                {
+                    cout << "Found book tiled as \"" << books[i].Title << " \"" << endl;
+                    return &books[i];
+                }
+            }
+            cout << "Book titled as \"" << titleString << " \" doesn't exist!" << endl;
+            Book *bookPointer = NULL;
+            return bookPointer;
+        }
+        void Display()
+        {
+            if(books.size() == 0)
+                cout << "There's no book to display!" << endl;
+            else
+                cout << "List of " << books.size() << " books:" << endl;
+            for (int i = 0; i < books.size(); i++)
+            {
+                cout << i + 1 << ". " << books[i].Title << endl;
+            }
+            return;
+        }
 };
+
+BookDatabase bookDatabase;
 
 class User
 {
@@ -58,7 +216,14 @@ class User
         {
             cout << "ye wala clear ni access karna h" << endl;
         }
-        // virtual string className();
+        virtual string className()
+        {
+            cout << "ye wala className ni access karna h" << endl;
+        }
+        virtual void AppendListOfBooks(Book book)
+        {
+            cout << "ye wala append ni access karna h" << endl;
+        }
 };
 
 class Professor: public User
@@ -81,8 +246,13 @@ class Professor: public User
         {
             cout << "clearing fine amount" << endl;
         }
+        void AppendListOfBooks(Book book)
+        {
+            this->listOfBooks.push_back(book);
+        }
         void Instructions()
         {
+            cout << "Loging in as a Professor" << endl;
             int ins;
             string pls = "Please type instruction number :";
             string help = "---Type '0' to show set of instructions---";
@@ -145,6 +315,7 @@ class Student: public User
         }
         void Instructions()
         {
+            cout << "Loging in as a Student" << endl;
             int ins;
             string pls = "Please type instruction number :";
             string help = "---Type '0' to show set of instructions---";
@@ -194,14 +365,28 @@ class Librarian: public User
             id = idString;
             password = passwordString;
         }
-        // void Add(const User &);
-        // void Add(const Book &);
-        // void Update();
-        // void Delete();
-        // void listAllUsers(UserDatabase* userDatabase)
-        // {
-        //     userDatabase->Display();
-        // }
+        void Add()
+        {
+            bookDatabase.Add();
+            return;
+        }
+        void Update()
+        {
+            bookDatabase.Update();
+            return;
+        }
+        void Delete()
+        {
+            string titleString;
+            cout << "Type Title :";
+            cin >> titleString;
+            bookDatabase.Delete(titleString);
+            return;
+        }
+        void listAllUsers()
+        {
+            //userDatabase->Display(); CHECK ORDER OF INSTANTIATION!!
+        }
         void Calculate_fine()
         {
             cout << "calculating fine" << endl;
@@ -212,6 +397,7 @@ class Librarian: public User
         }
         void Instructions()
         {
+            cout << "Loging in as a Librarian" << endl;
             int ins;
             string pls = "Please type instruction number :";
             string help = "---Type '0' to show set of instructions---";
@@ -233,7 +419,7 @@ class Librarian: public User
                     break;
                 
                 case 1:
-                    //this->Add();
+                    this->Add();
                     break;
                 
                 case 2:
@@ -291,7 +477,15 @@ class UserDatabase
         // void Update();
         // void Delete();
         // void Search();
-        // void Display();
+        void Display()
+        {
+            cout << "List of " << users.size() << " users:" << endl;
+            for (int i = 0; i < users.size(); i++)
+            {
+                cout << i + 1 << ". " << users[i]->name << endl;
+            }
+            return;
+        }
         
 };
 
@@ -310,8 +504,6 @@ User* Login()
         cin >> userName;
         cout << "Please enter your user password: ";
         cin >> userPassword;
-        //User *userPointer = (User *)calloc(1, sizeof(User));
-        //User *userPointer;
         for (auto user : userDatabase.users)
         {
             if (userName.compare(user->name) == 0 && userPassword.compare(user->password) == 0)
@@ -320,8 +512,6 @@ User* Login()
                         << "Thank you for logging in." << endl
                         << endl;
                 cout << "";
-                //userPointer = user;
-                //return userPointer;
                 return user;
             }
         }
@@ -329,7 +519,6 @@ User* Login()
                 << "Please check your credentials." << endl
                 << endl;
         loginAttempt++;
-        //delete userPointer;
     }
     cout << "Too many login attempts! The program will now terminate." << endl;
     User* null_ptr = NULL;
@@ -338,7 +527,6 @@ User* Login()
 
 int main()
 {
-    time_t now = time(0);
     //UserDatabase userDatabase;
     User *user;
     while(true)
@@ -348,13 +536,11 @@ int main()
         if(user != NULL)
         {
             user->Instructions();
-            //user->check();
         }
         else
         {
             cout << "Closing library.cpp..." << endl;
             return 0;
         }    
-        //delete user;
     }
 }
