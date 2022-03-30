@@ -59,10 +59,6 @@ class User
             cout << "ye wala clear ni access karna h" << endl;
         }
         // virtual string className();
-        void check()
-        {
-            cout << "1234" << endl;
-        }
 };
 
 class Professor: public User
@@ -85,42 +81,42 @@ class Professor: public User
         {
             cout << "clearing fine amount" << endl;
         }
-        // void Instructions()
-        // {
-        //     int ins;
-        //     string pls = "Please type instruction number :";
-        //     string help = "---Type '0' to show set of instructions---";
-        //     string instructionsSet = ""; //type -1 to logout
-        //     string wrong = "Wrong instruction number!";
-        //     while(true)
-        //     {
-        //         cout << help << endl
-        //              << pls;
-        //         cin >> ins;
-        //         switch (ins)
-        //         {
-        //         case -1:
-        //             return;
-        //             break;
+        void Instructions()
+        {
+            int ins;
+            string pls = "Please type instruction number :";
+            string help = "---Type '0' to show set of instructions---";
+            string instructionsSet = ""; //type -1 to logout
+            string wrong = "Wrong instruction number!";
+            while(true)
+            {
+                cout << help << endl
+                     << pls;
+                cin >> ins;
+                switch (ins)
+                {
+                case -1:
+                    return;
+                    break;
                 
-        //         case 0:
-        //             cout << instructionsSet << endl;
-        //             break;
+                case 0:
+                    cout << instructionsSet << endl;
+                    break;
                 
-        //         case 1:
-        //             Calculate_fine();
-        //             break;
+                case 1:
+                    this->Calculate_fine();
+                    break;
                 
-        //         case 2:
-        //             Clear_fine_amount();
-        //             break;
+                case 2:
+                    this->Clear_fine_amount();
+                    break;
                 
-        //         default:
-        //             cout << wrong << endl;
-        //             break;
-        //         }
-        //     }
-        // }
+                default:
+                    cout << wrong << endl;
+                    break;
+                }
+            }
+        }
         string className()
         {
             return "professor";
@@ -214,43 +210,43 @@ class Librarian: public User
         {
             cout << "clearing fine amount" << endl;
         }
-        // void Instructions()
-        // {
-        //     int ins;
-        //     string pls = "Please type instruction number :";
-        //     string help = "---Type '0' to show set of instructions---";
-        //     string instructionsSet = ""; //type -1 to logout
-        //     string wrong = "Wrong instruction number!";
-        //     while(true)
-        //     {
-        //         cout << help << endl
-        //              << pls;
-        //         cin >> ins;
-        //         switch (ins)
-        //         {
-        //         case -1:
-        //             return;
-        //             break;
+        void Instructions()
+        {
+            int ins;
+            string pls = "Please type instruction number :";
+            string help = "---Type '0' to show set of instructions---";
+            string instructionsSet = ""; //type -1 to logout
+            string wrong = "Wrong instruction number!";
+            while(true)
+            {
+                cout << help << endl
+                     << pls;
+                cin >> ins;
+                switch (ins)
+                {
+                case -1:
+                    return;
+                    break;
                 
-        //         case 0:
-        //             cout << instructionsSet << endl;
-        //             break;
+                case 0:
+                    cout << instructionsSet << endl;
+                    break;
                 
-        //         case 1:
-        //             //Add();
-        //             break;
+                case 1:
+                    //this->Add();
+                    break;
                 
-        //         case 2:
-        //             //listAllUsers();
-        //             break;
+                case 2:
+                    //this->listAllUsers();
+                    break;
                 
-        //         default:
-        //             cout << wrong << endl;
-        //             break;
-        //         }
-        //     }
-        //     return;
-        // }
+                default:
+                    cout << wrong << endl;
+                    break;
+                }
+            }
+            return;
+        }
         string className()
         {
             return "librarian";
@@ -339,45 +335,6 @@ User* Login()
     User* null_ptr = NULL;
     return null_ptr; //make it dynamic, put time limit
 }
-
-// void Instructions(User* user)
-// {
-//     int ins;
-//     string pls = "Please type instruction number :";
-//     string help = "---Type '0' to show set of instructions---";
-//     string instructionsSet = "1.Calculate Fine\n2.Clear Fine Amount\n."; //type -1 to logout
-//     string wrong = "Wrong instruction number!";
-//     while(true)
-//     {
-//         cout << help << endl
-//                 << pls;
-//         cin >> ins;
-//         switch (ins)
-//         {
-//         case -1:
-//             return;
-//             break;
-        
-//         case 0:
-//             cout << instructionsSet << endl;
-//             break;
-        
-//         case 1:
-//             cout << "loda ka calculating fine" << endl;
-//             cout << user->name << endl;
-//             user->Calculate_fine();
-//             break;
-        
-//         case 2:
-//             user->Clear_fine_amount();
-//             break;
-        
-//         default:
-//             cout << wrong << endl;
-//             break;
-//         }
-//     }
-// }
 
 int main()
 {
