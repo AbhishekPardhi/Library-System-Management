@@ -2,6 +2,9 @@
 #include <string>
 #include <vector>
 #include <ctime>
+#include <sstream>
+#include <fstream>
+
 using namespace std;
 
 time_t now = time(0);
@@ -28,11 +31,12 @@ class Book
             this->ISBN = ISBNString;
             this->Publication = PublicationString;
         }
-        void Book_Request(User* user)
+        Book* Book_Request(string userType)
         {
-            if(dueDate == ltm->tm_mday && dueMonth == 1 + ltm->tm_mon && dueYear == 1900 + ltm->tm_year)
+            Book *book = new Book;
+            if(this->dueDate == ltm->tm_mday && this->dueMonth == 1 + ltm->tm_mon && this->dueYear == 1900 + ltm->tm_year)
             {
-                dueDate += (user->className() == "student") ? 30 : 60;
+                dueDate += (userType == "student") ? 30 : 60;
                 while(dueDate>30)
                 {
                     dueMonth++;
@@ -40,12 +44,11 @@ class Book
                         dueMonth = 1, dueYear++;
                     dueDate -= 30;
                 }
-                Book *book = new Book;
                 *book = *this;
-                user->AppendListOfBooks(*book);
             }
             else
-                cout << "Sorry, this book is not available!" << endl;
+                book = NULL;
+            return book;
         }
         void Show_duedate()
         {
@@ -58,6 +61,42 @@ class BookDatabase
 {
     public:
         vector<Book> books;
+        BookDatabase()
+        {
+            string fname = "BookDatabase.csv";
+
+            vector<vector<string>> content;
+            vector<string> row;
+            string line, word;
+        
+            fstream file (fname, ios::in);
+            if(file.is_open())
+            {
+                while(getline(file, line))
+                {
+                    row.clear();
+        
+                    stringstream str(line);
+        
+                    while(getline(str, word, ','))
+                        row.push_back(word);
+                    content.push_back(row);
+                }
+            }
+            else
+                cout<<"Could not open the file\n";
+        
+            for(int i=0;i<content.size();i++)
+            {
+                Book newBook = Book(content[i][0],content[i][1],content[i][2],content[i][3]);
+                books.push_back(newBook);
+                // for(int j=0;j<content[i].size();j++)
+                // {
+                //     cout<<content[i][j]<<" ";
+                // }
+                //cout<<"\n";
+            }
+        }
         void Add()
         {
             string TitleString, AuthorString, ISBNString, PublicationString;
@@ -71,6 +110,12 @@ class BookDatabase
             cin >> PublicationString;
             Book bookObject = Book(TitleString, AuthorString, ISBNString, PublicationString);
             books.push_back(bookObject);
+
+            std::ofstream bookFile; //("BookDatabase.csv");
+            bookFile.open("BookDatabase.csv", std::ofstream::out | std::ofstream::app);
+            bookFile << endl
+                     << TitleString << "," << AuthorString << "," << ISBNString << "," << PublicationString;
+            bookFile.close();
         }
         void Update()
         {
@@ -199,6 +244,7 @@ class User
         string name;
         string id;
         string password;
+        vector<Book> listOfBooks;
 
         friend class UserDatabase;
         friend class Professor;
@@ -219,10 +265,24 @@ class User
         virtual string className()
         {
             cout << "ye wala className ni access karna h" << endl;
+            return "noooo";
         }
-        virtual void AppendListOfBooks(Book book)
+        void RequestBook()
         {
-            cout << "ye wala append ni access karna h" << endl;
+            cout << "Sorry, this book is not available!" << endl;
+            cout << "This is the list of available books:" << endl;
+            int num;
+            for (int i = 0; i < bookDatabase.books.size(); i++)
+            {
+                if(bookDatabase.books[i].dueDate == ltm->tm_mday && bookDatabase.books[i].dueMonth == 1 + ltm->tm_mon && bookDatabase.books[i].dueYear == 1900 + ltm->tm_year)
+                {
+                    cout << "i+1." << bookDatabase.books[i].Title << " \"" << endl;
+                }
+            }
+            cout << "Type your choice :";
+            cin >> num;
+            Book *_book = bookDatabase.books[num - 1].Book_Request(this->className());
+            this->listOfBooks.push_back(*_book);
         }
 };
 
@@ -230,7 +290,6 @@ class Professor: public User
 {
     public:
         int Fine_amount;
-        vector<Book> listOfBooks;
     
         Professor(string nameString = "ab", string idString = "200026", string passwordString = "1234")
         {
@@ -245,10 +304,6 @@ class Professor: public User
         void Clear_fine_amount()
         {
             cout << "clearing fine amount" << endl;
-        }
-        void AppendListOfBooks(Book book)
-        {
-            this->listOfBooks.push_back(book);
         }
         void Instructions()
         {
@@ -297,7 +352,6 @@ class Student: public User
 {
     public:
         int Fine_amount;
-        vector<Book> listOfBooks;
     
         Student(string nameString = "Abhishek", string idString = "200026", string passwordString = "1234")
         {
@@ -365,7 +419,7 @@ class Librarian: public User
             id = idString;
             password = passwordString;
         }
-        void Add()
+        void AddBook()
         {
             bookDatabase.Add();
             return;
@@ -375,7 +429,7 @@ class Librarian: public User
             bookDatabase.Update();
             return;
         }
-        void Delete()
+        void DeleteBook()
         {
             string titleString;
             cout << "Type Title :";
@@ -383,17 +437,13 @@ class Librarian: public User
             bookDatabase.Delete(titleString);
             return;
         }
-        void listAllUsers()
+        void DeleteUser()
         {
-            //userDatabase->Display(); CHECK ORDER OF INSTANTIATION!!
-        }
-        void Calculate_fine()
-        {
-            cout << "calculating fine" << endl;
-        }
-        void Clear_fine_amount()
-        {
-            cout << "clearing fine amount" << endl;
+            string userString;
+            cout << "Type Username :";
+            cin >> userString;
+            //userDatabase.Delete(userString);
+            return;
         }
         void Instructions()
         {
@@ -401,7 +451,7 @@ class Librarian: public User
             int ins;
             string pls = "Please type instruction number :";
             string help = "---Type '0' to show set of instructions---";
-            string instructionsSet = ""; //type -1 to logout
+            string instructionsSet = "-1.Logout\n1.Add a Book\n2.Add a User\n3.Delete a Book\n4.Delete a User\n5.List all Books\n6.List all Users"; // type -1 to logout
             string wrong = "Wrong instruction number!";
             while(true)
             {
@@ -419,13 +469,29 @@ class Librarian: public User
                     break;
                 
                 case 1:
-                    this->Add();
+                    this->AddBook();
                     break;
                 
                 case 2:
-                    //this->listAllUsers();
+                    //this->userDatabase.Add(); CHECK ORDER OF INSTANTIATION!!
+                    break;
+
+                case 3:
+                    this->DeleteBook();
                     break;
                 
+                case 4:
+                    //this->DeleteUser(); CHECK ORDER OF INSTANTIATION!!
+                    break;
+
+                case 5:
+                    bookDatabase.Display();
+                    break;
+                
+                case 6:
+                    //userDatabase->Display(); CHECK ORDER OF INSTANTIATION!!
+                    break;
+
                 default:
                     cout << wrong << endl;
                     break;
@@ -447,6 +513,40 @@ class UserDatabase
         UserDatabase()
         {
             Add("Abhishek", "200026", "1234", "student");
+            Add("abhi", "200026", "1234", "librarian");
+
+            string fname = "UserDatabase.csv";
+
+            vector<vector<string>> content;
+            vector<string> row;
+            string line, word;
+        
+            fstream file (fname, ios::in);
+            if(file.is_open())
+            {
+                while(getline(file, line))
+                {
+                    row.clear();
+        
+                    stringstream str(line);
+        
+                    while(getline(str, word, ','))
+                        row.push_back(word);
+                    content.push_back(row);
+                }
+            }
+            else
+                cout<<"Could not open the file\n";
+        
+            for(int i=0;i<content.size();i++)
+            {
+                Add(content[i][0],content[i][1],content[i][2],content[i][3]);
+                // for(int j=0;j<content[i].size();j++)
+                // {
+                //     cout<<content[i][j]<<" ";
+                // }
+                //cout<<"\n";
+            }
         }
         void Add(string nameString, string idString, string passwordString, string className)
         {
@@ -457,7 +557,7 @@ class UserDatabase
                 *userPointer = studentObject;
                 users.push_back(userPointer);
             }
-            else if(className == "professors")
+            else if(className == "professor")
             {
                 User *userPointer = new Professor;
                 Professor professorObject = Professor(nameString, idString, passwordString);
