@@ -139,8 +139,8 @@ class BookDatabase
         void Update()
         {
             string titleString;
-            string instructionSet = "-1.Return\n1.Change Title\n2.Change Author\n3.Change ISBN\n4.Change Publication";
-            string help = "---Type '0' to show set of instructions---";
+            string instructionSet = "\n-1.Return\n1.Change Title\n2.Change Author\n3.Change ISBN\n4.Change Publication";
+            string help = "\n---Type '0' to show set of instructions to Update Book Info---";
             string wrong = "Wrong instruction number!";
             string pls = "Type your choice: ";
             int i, ins;
@@ -153,7 +153,7 @@ class BookDatabase
             }
             if(i == books.size())
             {
-                cout << "Book titled as \"" << titleString << "\" doesn't exist!" << endl;
+                cout << "\nBook titled as \"" << titleString << "\" doesn't exist!" << endl;
                 return;
             }
             while(true)
@@ -167,12 +167,16 @@ class BookDatabase
                     return;
                     break;
                 
+                case 0:
+                    cout << instructionSet << endl;
+                    break;
+
                 case 1:
                 {
                     string newTitle;
                     cout << "Type new Title :";
                     cin >> newTitle;
-                    cout << "Successfully changed title of book \"" << books[i].Title << "\" to \"" << newTitle << "\"" << endl;
+                    cout << "\nSuccessfully changed title of book \"" << books[i].Title << "\" to \"" << newTitle << "\"" << endl;
                     books[i].Title = newTitle;
                     break;
                 }
@@ -182,7 +186,7 @@ class BookDatabase
                     string newAuthor;
                     cout << "Type new Author :";
                     cin >> newAuthor;
-                    cout << "Successfully changed Author of book \"" << books[i].Author << "\" to \"" << newAuthor << "\"" << endl;
+                    cout << "\nSuccessfully changed Author of book \"" << books[i].Author << "\" to \"" << newAuthor << "\"" << endl;
                     books[i].Author = newAuthor;
                     break;
                 }
@@ -192,7 +196,7 @@ class BookDatabase
                     string newISBN;
                     cout << "Type new ISBN :";
                     cin >> newISBN;
-                    cout << "Successfully changed ISBN of book \"" << books[i].ISBN << "\" to \"" << newISBN << "\"" << endl;
+                    cout << "\nSuccessfully changed ISBN of book \"" << books[i].ISBN << "\" to \"" << newISBN << "\"" << endl;
                     books[i].ISBN = newISBN;
                     break;
                 }
@@ -202,7 +206,7 @@ class BookDatabase
                     string newPublication;
                     cout << "Type new Publication :";
                     cin >> newPublication;
-                    cout << "Successfully changed Publication of book \"" << books[i].Publication << "\" to \"" << newPublication<< "\"" << endl;
+                    cout << "\nSuccessfully changed Publication of book \"" << books[i].Publication << "\" to \"" << newPublication<< "\"" << endl;
                     books[i].Publication = newPublication;
                     break;
                 }
@@ -444,7 +448,7 @@ class User
         void Display()
         {
             if(listOfBooks.size() == 0)
-                cout << "\nYou haven't issued any book!" << endl;
+                cout << "\n\"" << this->name << "\" hasn't issued any book!" << endl;
             else
             {
                 cout
@@ -772,16 +776,16 @@ class UserDatabase
         void Update()
         {
             string idString;
-            string instructionSet = "-1.Return\n1.Change Name\n2.Change ID\n3.Change Password";
-            string help = "---Type '0' to show set of instructions---";
+            string instructionSet = "\n-1.Return\n1.Change Name\n2.Change ID\n3.Change Password";
+            string help = "\n---Type '0' to show set of instructions to Update User Info---";
             string wrong = "Wrong instruction number!";
             string pls = "Type your choice: ";
             int i, ins;
-            cout << "Type User ID: ";
+            cout << "\nType User ID: ";
             cin >> idString;
             for (i = 0; i < users.size(); i++)
             {
-                if(users[i]->name.compare(idString)==0)
+                if(users[i]->id.compare(idString)==0)
                     break;
             }
             if(i == users.size())
@@ -799,13 +803,17 @@ class UserDatabase
                 case -1:
                     return;
                     break;
+
+                case 0:
+                    cout << instructionSet << endl;
+                    break;
                 
                 case 1:
                 {
                     string newName;
                     cout << "Type new User Name :";
                     cin >> newName;
-                    cout << "Successfully changed Name of User from \"" << users[i]->name << "\" to \"" << newName<< "\"" << endl;
+                    cout << "\nSuccessfully changed Name of User from \"" << users[i]->name << "\" to \"" << newName<< "\"" << endl;
                     users[i]->name = newName;
                     break;
                 }
@@ -815,7 +823,7 @@ class UserDatabase
                     string newID;
                     cout << "Type new ID :";
                     cin >> newID;
-                    cout << "Successfully changed ID of User from \"" << users[i]->id << "\" to \"" << newID << "\"" << endl;
+                    cout << "\nSuccessfully changed ID of User from \"" << users[i]->id << "\" to \"" << newID << "\"" << endl;
                     users[i]->id = newID;
                     break;
                 }
@@ -825,7 +833,7 @@ class UserDatabase
                     string newPassword;
                     cout << "Type new Password :";
                     cin >> newPassword;
-                    cout << "Successfully changed Password of User from \"" << users[i]->password << "\" to \"" << newPassword << "\"" << endl;
+                    cout << "\nSuccessfully changed Password of User from \"" << users[i]->password << "\" to \"" << newPassword << "\"" << endl;
                     users[i]->password = newPassword;
                     break;
                 }
@@ -1032,7 +1040,7 @@ void Librarian::ListOfBooks_User(UserDatabase *userDatabase)
     {
         if(userString==userDatabase->users[i]->id)
         {
-            cout << "\n\"" << userDatabase->users[i]->name << "\" has issued " << userDatabase->users[i]->listOfBooks.size() << " books:" << endl;
+            if(userDatabase->users[i]->listOfBooks.size()!=0) cout << "\n\"" << userDatabase->users[i]->name << "\" has issued " << userDatabase->users[i]->listOfBooks.size() << " books:" << endl;
             userDatabase->users[i]->Display();
             return;
         }
