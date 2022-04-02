@@ -4,15 +4,16 @@
 #include <ctime>
 #include <sstream>
 #include <fstream>
+#include <iomanip>
 
 using namespace std;
 
-
 time_t now = time(0);
-    tm *ltm = localtime(&now);
-    // cout << "Year: " << 1900 + ltm->tm_year<<endl;
-    // cout << "Month: "<< 1 + ltm->tm_mon<< endl;
-    // cout << "Day: "<< ltm->tm_mday << endl;
+tm *ltm = localtime(&now);
+// cout << "Year: " << 1900 + ltm->tm_year<<endl;
+// cout << "Month: "<< 1 + ltm->tm_mon<< endl;
+// cout << "Day: "<< ltm->tm_mday << endl;
+
 int diffTime(int day, int month, int year)
 {
     struct tm a = {0, 0, 0, day, month, year};
@@ -45,20 +46,23 @@ class Book
             this->Author = AuthorString;
             this->ISBN = ISBNString;
             this->Publication = PublicationString;
+            this->dueDate = ltm->tm_mday;
+            this->dueMonth = 1 + ltm->tm_mon;
+            this->dueYear = 1900 + ltm->tm_year;
         }
         Book* Book_Request(int timeLimit)
         {
             Book *book = new Book;
             if(this->dueDate == ltm->tm_mday && this->dueMonth == 1 + ltm->tm_mon && this->dueYear == 1900 + ltm->tm_year)
             {
-                dueDate += timeLimit;
-                while(dueDate>30)
-                {
-                    dueMonth++;
-                    if(dueMonth>12)
-                        dueMonth = 1, dueYear++;
-                    dueDate -= 30;
-                }
+                time_t now = time( NULL);
+                struct tm now_tm = *localtime( &now);
+                struct tm then_tm = now_tm;
+                then_tm.tm_sec += timeLimit * 24 * 3600;
+                mktime( &then_tm);
+                dueDate = then_tm.tm_mday;
+                dueMonth = then_tm.tm_mon;
+                dueYear = then_tm.tm_year;
                 *book = *this;
             }
             else
@@ -105,11 +109,6 @@ class BookDatabase
             {
                 Book newBook = Book(content[i][0],content[i][1],content[i][2],content[i][3]);
                 books.push_back(newBook);
-                // for(int j=0;j<content[i].size();j++)
-                // {
-                //     cout<<content[i][j]<<" ";
-                // }
-                //cout<<"\n";
             }
         }
         void Add()
@@ -241,12 +240,54 @@ class BookDatabase
         void Display()
         {
             if(books.size() == 0)
-                cout << "There's no book to display!" << endl;
+                cout << "\nThere's no book to display!" << endl;
             else
-                cout << "List of " << books.size() << " books:" << endl;
-            for (int i = 0; i < books.size(); i++)
             {
-                cout << i + 1 << ". " << books[i].Title << endl;
+                cout << "\nList of " << " books:\n" << endl;
+                // for (int i = 0; i < books.size(); i++)
+                // {
+                //     cout << i + 1 << ". " << books[i].Title << endl;
+                // }
+                cout
+                    << left
+                    << setw(4)
+                    << "Sr."
+                    << left
+                    << setw(12)
+                    << "Title"
+                    << left
+                    << setw(12)
+                    << "Author"
+                    << left
+                    << setw(15)
+                    << "ISBN"
+                    << left
+                    << setw(12)
+                    << "Publication"
+                    << endl;
+                std::string str("");
+                str.insert(0, 52, '-');
+                cout << str << endl;
+                for (int i = 0; i < this->books.size(); i++)
+                {
+                    cout
+                        << left
+                        << setw(4)
+                        << i+1
+                        << left
+                        << setw(12)
+                        << books[i].Title
+                        << left
+                        << setw(12)
+                        << books[i].Author
+                        << left
+                        << setw(15)
+                        << books[i].ISBN
+                        << left
+                        << setw(12)
+                        << books[i].Publication
+                        << endl;
+                }
             }
             return;
         }
@@ -274,23 +315,24 @@ class User
         void Calculate_fine(int fineRate)
         {
             int Fine_amount = 0;
-            for (int i = 0; i < listOfBooks.size(); i++)
+            for (int i = 0; i < this->listOfBooks.size(); i++)
             {
-                int timeDifference = diffTime(listOfBooks[i]->dueDate, listOfBooks[i]->dueMonth, listOfBooks[i]->dueYear);
+                int timeDifference = diffTime(this->listOfBooks[i]->dueDate, this->listOfBooks[i]->dueMonth, this->listOfBooks[i]->dueYear);
                 Fine_amount += (timeDifference>0) ? (fineRate*timeDifference) : 0;
             }
-            cout << "The total fine of the User \"" << this->name << "\" is: Rs." << Fine_amount << endl;
+            cout << "\nThe total fine of the User \"" << this->name << "\" is: Rs." << Fine_amount << endl <<  endl;
             return;
         }
         void Clear_fine_amount()
         {
-            for (int i = 0; i < listOfBooks.size(); i++)
+            for (int i = 0; i < this->listOfBooks.size(); i++)
             {
-                listOfBooks[i]->dueDate = ltm->tm_mday;
-                listOfBooks[i]->dueMonth = 1 + ltm->tm_mon;
-                listOfBooks[i]->dueYear = 1900 + ltm->tm_year;
-                listOfBooks.erase(listOfBooks.begin() + i);
+                this->listOfBooks[i]->dueDate = ltm->tm_mday;
+                this->listOfBooks[i]->dueMonth = 1 + ltm->tm_mon;
+                this->listOfBooks[i]->dueYear = 1900 + ltm->tm_year;
             }
+            this->listOfBooks.clear();
+            cout << "\nSuccessfully Returned all issued books\n" << endl;
             return;
         }
         virtual string className()
@@ -300,40 +342,164 @@ class User
         }
         void RequestBook(int timeLimit)
         {
-            cout << "This is the list of available books:" << endl;
             int num;
-            for (int i = 0; i < bookDatabase.books.size(); i++)
-            {
-                if(bookDatabase.books[i].dueDate == ltm->tm_mday && bookDatabase.books[i].dueMonth == 1 + ltm->tm_mon && bookDatabase.books[i].dueYear == 1900 + ltm->tm_year)
-                {
-                    cout << "i+1." << bookDatabase.books[i].Title << " \"" << endl;
-                }
-            }
             while(true)
             {
-                if(this->className()=="student" && this->listOfBooks.size()==5)
+                if(bookDatabase.books.size()==0)
                 {
-                    cout << "Can't issue more than 5 books at a time!" << endl;
+                    cout << "\nThere isn't any book available!\n" << endl;
                     break;
                 }
-                cout << "Type -1 to Return\nType your choice :";
+                cout << "\nThis is the list of available books:\n" << endl;
+                cout
+                    << left
+                    << setw(4)
+                    << "Sr."
+                    << left
+                    << setw(20)
+                    << "Title"
+                    << left
+                    << setw(20)
+                    << "Author"
+                    << left
+                    << setw(20)
+                    << "ISBN"
+                    << left
+                    << setw(20)
+                    << "Publication"
+                    << left
+                    << setw(12)
+                    << "Due Date"
+                    << endl;
+                std::string str("");
+                str.insert(0, 96, '-');
+                cout << str << endl;
+                for (int i = 0; i < bookDatabase.books.size(); i++)
+                {
+                    if(bookDatabase.books[i].dueDate == ltm->tm_mday && bookDatabase.books[i].dueMonth == 1 + ltm->tm_mon && bookDatabase.books[i].dueYear == 1900 + ltm->tm_year)
+                    {
+                        cout
+                            << left
+                            << setw(4)
+                            << i+1
+                            << left
+                            << setw(20)
+                            << bookDatabase.books[i].Title
+                            << left
+                            << setw(20)
+                            << bookDatabase.books[i].Author
+                            << left
+                            << setw(20)
+                            << bookDatabase.books[i].ISBN
+                            << left
+                            << setw(20)
+                            << bookDatabase.books[i].Publication
+                            << left
+                            << setw(2)
+                            << bookDatabase.books[i].dueDate
+                            << left
+                            << setw(1)
+                            << "/"
+                            << left
+                            << setw(2)
+                            << bookDatabase.books[i].dueMonth
+                            << left
+                            << setw(1)
+                            << "/"
+                            << left
+                            << setw(4)
+                            << bookDatabase.books[i].dueYear
+                            << endl;
+                    }
+                }
+                if(this->className()=="student" && this->listOfBooks.size()==5)
+                {
+                    cout << "\nCan't issue more than 5 books at a time!\n" << endl;
+                    break;
+                }
+                cout << "\nType -1 to Return\nType your choice :";
                 cin >> num;
+                if(num==-1)
+                    break;
                 Book *_book = bookDatabase.books[num - 1].Book_Request(timeLimit);
                 if(_book!=NULL)
                 {
                     this->listOfBooks.push_back(_book);
-                    cout << "Succesfully issued book: \"" << _book->Title << "\"" << endl;
+                    cout << "\nSuccesfully issued book: \"" << _book->Title << "\"\n" << endl;
                 }
                 else
-                    cout << "Please choose only those books which are available" << endl;
+                    cout << "\nPlease choose only those books which are available!\n" << endl;
             }
             return;
         }
         void Display()
         {
-            for (int i = 0; i < this->listOfBooks.size();i++)
+            if(listOfBooks.size() == 0)
+                cout << "\nYou haven't issued any book!\n" << endl;
+            else
             {
-                cout << "i+1." << this->listOfBooks[i]->Title << endl;
+                // for (int i = 0; i < this->listOfBooks.size();i++)
+                // {
+                //     cout << "i+1." << this->listOfBooks[i]->Title << endl;
+                // }
+                cout
+                    << left
+                    << setw(4)
+                    << "Sr."
+                    << left
+                    << setw(20)
+                    << "Title"
+                    << left
+                    << setw(20)
+                    << "Author"
+                    << left
+                    << setw(20)
+                    << "ISBN"
+                    << left
+                    << setw(20)
+                    << "Publication"
+                    << left
+                    << setw(12)
+                    << "Due Date"
+                    << endl;
+                std::string str("");
+                str.insert(0, 96, '-');
+                cout << str << endl;
+                for (int i = 0; i < this->listOfBooks.size(); i++)
+                {
+                    cout
+                        << left
+                        << setw(4)
+                        << i+1
+                        << left
+                        << setw(20)
+                        << this->listOfBooks[i]->Title
+                        << left
+                        << setw(20)
+                        << this->listOfBooks[i]->Author
+                        << left
+                        << setw(20)
+                        << this->listOfBooks[i]->ISBN
+                        << left
+                        << setw(20)
+                        << this->listOfBooks[i]->Publication
+                        << left
+                        << setw(2)
+                        << this->listOfBooks[i]->dueDate
+                        << left
+                        << setw(1)
+                        << "/"
+                        << left
+                        << setw(2)
+                        << this->listOfBooks[i]->dueMonth
+                        << left
+                        << setw(1)
+                        << "/"
+                        << left
+                        << setw(4)
+                        << this->listOfBooks[i]->dueYear
+                        << endl;
+                }
             }
             return;
         }
@@ -355,9 +521,9 @@ class Professor: public User
             cout << "Loging in as a Professor" << endl;
             int ins;
             string pls = "Please type instruction number :";
-            string help = "---Type '0' to show set of instructions---";
-            string instructionsSet = "-1.Logout\n1.Display all books\n2.Display all your issued books\n3.Check availability/Issue book\n4.Calculate Fine\n5.Clear Fine Amount\n.";
-            string wrong = "Wrong instruction number!";
+            string help = "\n---Type '0' to show set of instructions---";
+            string instructionsSet = "\n-1.Logout\n1.Display all books\n2.Display all your issued books\n3.Check availability/Issue book\n4.Calculate Fine\n5.Clear Fine Amount\n";
+            string wrong = "\nWrong instruction number!";
             while(true)
             {
                 cout << help << endl
@@ -421,9 +587,9 @@ class Student: public User
             cout << "Loging in as a Student" << endl;
             int ins;
             string pls = "Please type instruction number :";
-            string help = "---Type '0' to show set of instructions---";
-            string instructionsSet = "-1.Logout\n1.Display all books\n2.Display all your issued books\n3.Check availability/Issue book\n4.Calculate Fine\n5.Clear Fine Amount\n.";
-            string wrong = "Wrong instruction number!";
+            string help = "\n---Type '0' to show set of instructions---";
+            string instructionsSet = "\n-1.Logout\n1.Display all books\n2.Display all your issued books\n3.Check availability/Issue book\n4.Calculate Fine\n5.Clear Fine Amount\n.";
+            string wrong = "\nWrong instruction number!";
             while(true)
             {
                 cout << help << endl
@@ -547,11 +713,6 @@ class UserDatabase
             for(int i=0;i<content.size();i++)
             {
                 Add(content[i][0],content[i][1],content[i][2],content[i][3]);
-                // for(int j=0;j<content[i].size();j++)
-                // {
-                //     cout<<content[i][j]<<" ";
-                // }
-                //cout<<"\n";
             }
         }
         void Add(string nameString, string idString, string passwordString, string className)
@@ -686,16 +847,14 @@ class UserDatabase
         
 };
 
-//UserDatabase userDatabase;
-
 void Librarian::Instructions(UserDatabase* userDatabase)
 {
     cout << "Loging in as a Librarian" << endl;
     int ins;
     string pls = "Please type instruction number :";
-    string help = "---Type '0' to show set of instructions---";
-    string instructionsSet = "-1.Logout\n1.Add a Book\n2.Add a User\n3.Delete a Book\n4.Delete a User\n5.List all Books\n6.List all Users"; // type -1 to logout
-    string wrong = "Wrong instruction number!";
+    string help = "\n---Type '0' to show set of instructions---";
+    string instructionsSet = "\n-1.Logout\n1.Add a Book\n2.Add a User\n3.Delete a Book\n4.Delete a User\n5.List all Books\n6.List all Users"; // type -1 to logout
+    string wrong = "\nWrong instruction number!";
     while(true)
     {
         cout << help << endl
@@ -777,7 +936,7 @@ User* Login(UserDatabase* userDatabase)
     string userName;
     string userPassword;
     int loginAttempt = 0;
-    cout << "This is a Library Management System in C++" << endl;
+    cout << "=>This is a Library Management System in C++\n" << endl;
     while (loginAttempt < 5)
     {
         cout << "Please enter your user name: ";
@@ -788,15 +947,15 @@ User* Login(UserDatabase* userDatabase)
         {
             if (userName.compare(user->name) == 0 && userPassword.compare(user->password) == 0)
             {
-                cout << "Welcome " << user->name << "!!" << endl
-                        << "Thank you for logging in." << endl
+                cout << "\nWelcome " << user->name << "!!" << endl
+                        << "Thank you for logging in" << endl
                         << endl;
                 cout << "";
                 return user;
             }
         }
-        cout << "Invalid login attempt." << endl
-                << "Please check your credentials." << endl
+        cout << "\nInvalid login attempt" << endl
+                << "Please check your credentials" << endl
                 << endl;
         loginAttempt++;
     }
@@ -835,10 +994,11 @@ int main()
         if(user != NULL)
         {
             user->Instructions(&userDatabase);
+            cout << "\nHave a nice day!\nLoging out..\n\n";
         }
         else
         {
-            cout << "Closing library.cpp..." << endl;
+            cout << "Closing library.cpp...\n" << endl;
             return 0;
         }    
     }
