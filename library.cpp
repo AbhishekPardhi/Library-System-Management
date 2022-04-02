@@ -111,6 +111,9 @@ class BookDatabase
             for(int i=0;i<content.size();i++)
             {
                 Book newBook = Book(content[i][0],content[i][1],content[i][2],content[i][3]);
+                newBook.dueDate = stoi(content[i][4]);
+                newBook.dueMonth = stoi(content[i][5]);
+                newBook.dueYear = stoi(content[i][6]);
                 books.push_back(newBook);
             }
         }
@@ -133,7 +136,7 @@ class BookDatabase
             std::ofstream bookFile;
             bookFile.open("BookDatabase.csv", std::ofstream::out | std::ofstream::app);
             bookFile << endl
-                     << TitleString << "," << AuthorString << "," << ISBNString << "," << PublicationString;
+                     << TitleString << "," << AuthorString << "," << ISBNString << "," << PublicationString << "," << ltm->tm_mday << "," << 1 + ltm->tm_mon << "," << 1900 + ltm->tm_year << endl;
             bookFile.close();
         }
         void Update()
@@ -226,7 +229,7 @@ class BookDatabase
                     if(iterator!=i)
                         fout << line << endl;
                     else
-                        fout << books[i].Title << "," << books[i].Author << "," << books[i].ISBN << "," << books[i].Publication << endl;
+                        fout << books[i].Title << "," << books[i].Author << "," << books[i].ISBN << "," << books[i].Publication << ","  << books[i].dueDate << "," << books[i].dueMonth << "," << books[i].dueYear <<  endl;
                     iterator++;
                 }
                 fin.close();
@@ -373,116 +376,13 @@ class User
             cout << "\nThe total fine of the User \"" << this->name << "\" is: Rs." << Fine_amount << endl <<  endl;
             return;
         }
-        void Clear_fine_amount()
-        {
-            for (int i = 0; i < this->listOfBooks.size(); i++)
-            {
-                this->listOfBooks[i]->dueDate = ltm->tm_mday;
-                this->listOfBooks[i]->dueMonth = 1 + ltm->tm_mon;
-                this->listOfBooks[i]->dueYear = 1900 + ltm->tm_year;
-                this->listOfBooks[i]->issuedToUser = "-None-";
-            }
-            this->listOfBooks.clear();
-            cout << "\nSuccessfully Returned all issued books" << endl;
-            return;
-        }
+        void Clear_fine_amount(UserDatabase *userDatabase);
         virtual string className()
         {
             cout << "shouldn't be accessible" << endl;
             return "noooo";
         }
-        void RequestBook(int timeLimit)
-        {
-            int num;
-            while(true)
-            {
-                if(bookDatabase.books.size()==0)
-                {
-                    cout << "\nThere isn't any book available!\n" << endl;
-                    break;
-                }
-                cout << "\nThis is the list of available books:\n" << endl;
-                cout
-                    << left
-                    << setw(4)
-                    << "Sr."
-                    << left
-                    << setw(20)
-                    << "Title"
-                    << left
-                    << setw(20)
-                    << "Author"
-                    << left
-                    << setw(20)
-                    << "ISBN"
-                    << left
-                    << setw(20)
-                    << "Publication"
-                    << left
-                    << setw(12)
-                    << "Due Date"
-                    << endl;
-                std::string str("");
-                str.insert(0, 96, '-');
-                cout << str << endl;
-                for (int i = 0; i < bookDatabase.books.size(); i++)
-                {
-                    if(bookDatabase.books[i].dueDate == ltm->tm_mday && bookDatabase.books[i].dueMonth == 1 + ltm->tm_mon && bookDatabase.books[i].dueYear == 1900 + ltm->tm_year)
-                    {
-                        cout
-                            << left
-                            << setw(4)
-                            << i+1
-                            << left
-                            << setw(20)
-                            << bookDatabase.books[i].Title
-                            << left
-                            << setw(20)
-                            << bookDatabase.books[i].Author
-                            << left
-                            << setw(20)
-                            << bookDatabase.books[i].ISBN
-                            << left
-                            << setw(20)
-                            << bookDatabase.books[i].Publication
-                            << left
-                            << setw(2)
-                            << bookDatabase.books[i].dueDate
-                            << left
-                            << setw(1)
-                            << "/"
-                            << left
-                            << setw(2)
-                            << bookDatabase.books[i].dueMonth
-                            << left
-                            << setw(1)
-                            << "/"
-                            << left
-                            << setw(4)
-                            << bookDatabase.books[i].dueYear
-                            << endl;
-                    }
-                }
-                if(this->className()=="student" && this->listOfBooks.size()==5)
-                {
-                    cout << "\nCan't issue more than 5 books at a time!\n" << endl;
-                    break;
-                }
-                cout << "\nType -1 to Return\nType your choice(Sr. of Book) :";
-                cin >> num;
-                if(num==-1)
-                    break;
-                Book *_book = bookDatabase.books[num - 1].Book_Request(timeLimit, this->id);
-                if(_book!=NULL)
-                {
-                    this->listOfBooks.push_back(_book);
-                    cout << "\nSuccesfully issued book: \"" << _book->Title << "\"" << endl;
-                }
-                else
-                    cout << "\nPlease choose only those books which are available!" << endl;
-            }
-            return;
-        }
+        void RequestBook(int timeLimit, UserDatabase *userDatabase);
         void Display()
         {
             if(listOfBooks.size() == 0)
@@ -595,7 +495,7 @@ class Professor: public User
                     break;
 
                 case 3:
-                    this->RequestBook(this->timeLimit);
+                    this->RequestBook(this->timeLimit, userDatabase);
                     break;
 
                 case 4:
@@ -603,7 +503,7 @@ class Professor: public User
                     break;
                 
                 case 5:
-                    this->Clear_fine_amount();
+                    this->Clear_fine_amount(userDatabase);
                     break;
                 
                 default:
@@ -661,7 +561,7 @@ class Student: public User
                     break;
 
                 case 3:
-                    this->RequestBook(this->timeLimit);
+                    this->RequestBook(this->timeLimit, userDatabase);
                     break;
 
                 case 4:
@@ -669,7 +569,7 @@ class Student: public User
                     break;
                 
                 case 5:
-                    this->Clear_fine_amount();
+                    this->Clear_fine_amount(userDatabase);
                     break;
                 
                 default:
@@ -777,10 +677,15 @@ class UserDatabase
         
             for(int i=0;i<content.size();i++)
             {
-                Add(content[i][0],content[i][1],content[i][2],content[i][3]);
+                User *userPointer = Add(content[i][0], content[i][1], content[i][2], content[i][3]);
+                //userPointer->listOfBooks
+                for (int j = 4; j < content[i].size();j++)
+                {
+                    userPointer->listOfBooks.push_back(bookDatabase.Search(content[i][j]));
+                }
             }
         }
-        void Add(string nameString, string idString, string passwordString, string className)
+        User* Add(string nameString, string idString, string passwordString, string className)
         {
             fstream fin;
             fin.open("UserDatabase.csv", ios::in);
@@ -794,6 +699,7 @@ class UserDatabase
                     << studentObject.name << "," << studentObject.id << "," << studentObject.password << ","
                     << "student";
                 cout << "\nSuccesfully Added User \"" << nameString << "\"" << endl;
+                return userPointer;
             }
             else if(className == "professor")
             {
@@ -805,6 +711,7 @@ class UserDatabase
                     << professorObject.name << "," << professorObject.id << "," << professorObject.password << ","
                     << "professor";
                 cout << "\nSuccesfully Added User \"" << nameString << "\"" << endl;
+                return userPointer;
             }
             else if(className == "librarian")
             {
@@ -816,10 +723,13 @@ class UserDatabase
                     << librarianObject.name << "," << librarianObject.id << "," << librarianObject.password << ","
                     << "librarian";
                 cout << "\nSuccesfully Added User \"" << nameString << "\"" << endl;
+                return userPointer;
             }
             else
                 cout << "\nUser Type \"" << className << "\" doesn't exist!" << endl;
             fin.close();
+            User *userPointer = NULL;
+            return userPointer;
         }
         void Update()
         {
@@ -901,7 +811,14 @@ class UserDatabase
                     if(iterator!=i)
                         fout << line << endl;
                     else
-                        fout << users[i]->name << "," << users[i]->id << "," << users[i]->password << "," << users[i]->className() << endl;
+                    {
+                        fout << users[i]->name << "," << users[i]->id << "," << users[i]->password << "," << users[i]->className();
+                        for (int j = 0; j < users[i]->listOfBooks.size(); j++)
+                        {
+                            fout << "," << users[i]->listOfBooks[j]->Title;
+                        }
+                        fout << endl;
+                    }
                     iterator++;
                 }
                 fin.close();
@@ -1010,6 +927,184 @@ class UserDatabase
             return;
         }
 };
+void User::Clear_fine_amount(UserDatabase* userDatabase)
+{
+    for (int i = 0; i < this->listOfBooks.size(); i++)
+    {
+        this->listOfBooks[i]->dueDate = ltm->tm_mday;
+        this->listOfBooks[i]->dueMonth = 1 + ltm->tm_mon;
+        this->listOfBooks[i]->dueYear = 1900 + ltm->tm_year;
+        this->listOfBooks[i]->issuedToUser = "-None-";
+    }
+    fstream fin, fout;
+    fin.open("BookDatabase.csv", ios::in);
+    fout.open("BookDatabaseNew.csv", ios::out);
+    for (int i = 0; i < bookDatabase.books.size(); i++)
+    {
+        fout << bookDatabase.books[i].Title << "," << bookDatabase.books[i].Author << "," << bookDatabase.books[i].ISBN << "," << bookDatabase.books[i].Publication << "," << bookDatabase.books[i].dueDate << "," << bookDatabase.books[i].dueMonth << "," << bookDatabase.books[i].dueYear;
+        if(i!=bookDatabase.books.size()-1)
+            fout << endl;
+    }
+    fin.close();
+    fout.close();
+    remove("BookDatabase.csv");
+    rename("BookDatabaseNew.csv", "BookDatabase.csv");
+
+    string line;
+    int iterator = 0;
+    fin.open("UserDatabase.csv", ios::in);
+    fout.open("UserDatabaseNew.csv", ios::out);
+    while(getline(fin, line))
+    {
+        stringstream str(line);
+        if(userDatabase->users[iterator]->name!=this->name)
+            fout << line;
+        else
+            fout << this->name << "," << this->id << "," << this->password << "," << this->className();
+        if(iterator!=userDatabase->users.size()-1)
+            fout << endl;
+        iterator++;
+    }
+    fin.close();
+    fout.close();
+    remove("UserDatabase.csv");
+    rename("UserDatabaseNew.csv", "UserDatabase.csv");
+
+    this->listOfBooks.clear();
+    cout << "\nSuccessfully Returned all issued books" << endl;
+    return;
+}
+void User::RequestBook(int timeLimit, UserDatabase* userDatabase)
+{
+    int num;
+    while(true)
+    {
+        if(bookDatabase.books.size()==0)
+        {
+            cout << "\nThere isn't any book available!\n" << endl;
+            break;
+        }
+        cout << "\nThis is the list of available books:\n" << endl;
+        cout
+            << left
+            << setw(4)
+            << "Sr."
+            << left
+            << setw(20)
+            << "Title"
+            << left
+            << setw(20)
+            << "Author"
+            << left
+            << setw(20)
+            << "ISBN"
+            << left
+            << setw(20)
+            << "Publication"
+            << left
+            << setw(12)
+            << "Due Date"
+            << endl;
+        std::string str("");
+        str.insert(0, 96, '-');
+        cout << str << endl;
+        for (int i = 0; i < bookDatabase.books.size(); i++)
+        {
+            if(bookDatabase.books[i].dueDate == ltm->tm_mday && bookDatabase.books[i].dueMonth == 1 + ltm->tm_mon && bookDatabase.books[i].dueYear == 1900 + ltm->tm_year)
+            {
+                cout
+                    << left
+                    << setw(4)
+                    << i+1
+                    << left
+                    << setw(20)
+                    << bookDatabase.books[i].Title
+                    << left
+                    << setw(20)
+                    << bookDatabase.books[i].Author
+                    << left
+                    << setw(20)
+                    << bookDatabase.books[i].ISBN
+                    << left
+                    << setw(20)
+                    << bookDatabase.books[i].Publication
+                    << left
+                    << setw(2)
+                    << bookDatabase.books[i].dueDate
+                    << left
+                    << setw(1)
+                    << "/"
+                    << left
+                    << setw(2)
+                    << bookDatabase.books[i].dueMonth
+                    << left
+                    << setw(1)
+                    << "/"
+                    << left
+                    << setw(4)
+                    << bookDatabase.books[i].dueYear
+                    << endl;
+            }
+        }
+        if(this->className()=="student" && this->listOfBooks.size()==5)
+        {
+            cout << "\nCan't issue more than 5 books at a time!\n" << endl;
+            break;
+        }
+        cout << "\nType -1 to Return\nType your choice(Sr. of Book) :";
+        cin >> num;
+        if(num==-1)
+            break;
+        Book *_book = bookDatabase.books[num - 1].Book_Request(timeLimit, this->id);
+        if(_book!=NULL)
+        {
+            this->listOfBooks.push_back(_book);
+            cout << "\nSuccesfully issued book: \"" << _book->Title << "\"" << endl;
+            fstream fin, fout;
+            fin.open("BookDatabase.csv", ios::in);
+            fout.open("BookDatabaseNew.csv", ios::out);
+            string line;
+            int iterator = 0;
+            while(getline(fin, line))
+            {
+                stringstream str(line);
+                if(iterator!=num-1)
+                    fout << line;
+                else
+                    fout << bookDatabase.books[num-1].Title << "," << bookDatabase.books[num-1].Author << "," << bookDatabase.books[num-1].ISBN << "," << bookDatabase.books[num-1].Publication << ","  << bookDatabase.books[num-1].dueDate << "," << bookDatabase.books[num-1].dueMonth << "," << bookDatabase.books[num-1].dueYear;
+                if(iterator!=bookDatabase.books.size()-1)
+                    fout << endl;
+                iterator++;
+            }
+            fin.close();
+            fout.close();
+            remove("BookDatabase.csv");
+            rename("BookDatabaseNew.csv", "BookDatabase.csv");
+            
+            fin.open("UserDatabase.csv", ios::in);
+            fout.open("UserDatabaseNew.csv", ios::out);
+            iterator = 0;
+            while(getline(fin, line))
+            {
+                stringstream str(line);
+                if(userDatabase->users[iterator]->name!=this->name)
+                    fout << line;
+                else
+                    fout << line << "," << _book->Title;
+                if(iterator!=userDatabase->users.size()-1)
+                    fout << endl;
+                iterator++;
+            }
+            fin.close();
+            fout.close();
+            remove("UserDatabase.csv");
+            rename("UserDatabaseNew.csv", "UserDatabase.csv");
+        }
+        else
+            cout << "\nPlease choose only those books which are available!" << endl;
+    }
+    return;
+}
 
 void Librarian::Instructions(UserDatabase* userDatabase)
 {
