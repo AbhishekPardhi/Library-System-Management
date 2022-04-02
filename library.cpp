@@ -39,6 +39,7 @@ class Book
         string Author;
         string ISBN;
         string Publication;
+        string issuedToUser;
 
         Book(string TitleString = "", string AuthorString = "", string ISBNString = "", string PublicationString = "")
         {
@@ -49,8 +50,9 @@ class Book
             this->dueDate = ltm->tm_mday;
             this->dueMonth = 1 + ltm->tm_mon;
             this->dueYear = 1900 + ltm->tm_year;
+            this->issuedToUser = "-None-";
         }
-        Book* Book_Request(int timeLimit)
+        Book* Book_Request(int timeLimit, string idString)
         {
             Book *book = new Book;
             if(this->dueDate == ltm->tm_mday && this->dueMonth == 1 + ltm->tm_mon && this->dueYear == 1900 + ltm->tm_year)
@@ -60,9 +62,10 @@ class Book
                 struct tm then_tm = now_tm;
                 then_tm.tm_sec += timeLimit * 24 * 3600;
                 mktime( &then_tm);
-                dueDate = then_tm.tm_mday;
-                dueMonth = then_tm.tm_mon;
-                dueYear = then_tm.tm_year;
+                this->dueDate = then_tm.tm_mday;
+                this->dueMonth = then_tm.tm_mon;
+                this->dueYear = then_tm.tm_year;
+                this->issuedToUser = idString;
                 *book = *this;
             }
             else
@@ -114,7 +117,7 @@ class BookDatabase
         void Add()
         {
             string TitleString, AuthorString, ISBNString, PublicationString;
-            cout << "Please type info of the Book to be added:" << endl;
+            cout << "\nPlease type info of the Book to be added:\n" << endl;
             cout << "Type Title :";
             cin >> TitleString;
             cout << "Type Author :";
@@ -125,6 +128,7 @@ class BookDatabase
             cin >> PublicationString;
             Book bookObject = Book(TitleString, AuthorString, ISBNString, PublicationString);
             books.push_back(bookObject);
+            cout << "\nSuccesfully Added Book \"" << TitleString << "\"" << endl;
 
             std::ofstream bookFile; //("BookDatabase.csv");
             bookFile.open("BookDatabase.csv", std::ofstream::out | std::ofstream::app);
@@ -215,12 +219,21 @@ class BookDatabase
             {
                 if(books[i].Title.compare(titleString)==0)
                 {
-                    cout << "Successfully deleted \"" << books[i].Title << " \"" << endl;
-                    books.erase(books.begin() + i);
+                    string confirm;
+                    cout << "Are you sure you want to Delete Book \"" << titleString << "\" ?" << endl;
+                    cout << "Type y/n: ";
+                    cin >> confirm;
+                    if(confirm=="y")
+                    {
+                        cout << "\nSuccessfully Deleted Book \"" << titleString << " \" from books list" << endl;
+                        books.erase(books.begin() + i);
+                    }
+                    else
+                        cout << "\nAborted Deletion of Book \"" << titleString << "\"" << endl;
                     return;
                 }
             }
-            cout << "Book titled as \"" << titleString << " \" doesn't exist!" << endl;
+            cout << "\nBook titled as \"" << titleString << " \" doesn't exist!" << endl;
             return;
         }
         Book* Search(string titleString)
@@ -243,11 +256,7 @@ class BookDatabase
                 cout << "\nThere's no book to display!" << endl;
             else
             {
-                cout << "\nList of " << " books:\n" << endl;
-                // for (int i = 0; i < books.size(); i++)
-                // {
-                //     cout << i + 1 << ". " << books[i].Title << endl;
-                // }
+                cout << "\nList of books:\n" << endl;
                 cout
                     << left
                     << setw(4)
@@ -421,7 +430,7 @@ class User
                 cin >> num;
                 if(num==-1)
                     break;
-                Book *_book = bookDatabase.books[num - 1].Book_Request(timeLimit);
+                Book *_book = bookDatabase.books[num - 1].Book_Request(timeLimit, this->id);
                 if(_book!=NULL)
                 {
                     this->listOfBooks.push_back(_book);
@@ -435,13 +444,9 @@ class User
         void Display()
         {
             if(listOfBooks.size() == 0)
-                cout << "\nYou haven't issued any book!\n" << endl;
+                cout << "\nYou haven't issued any book!" << endl;
             else
             {
-                // for (int i = 0; i < this->listOfBooks.size();i++)
-                // {
-                //     cout << "i+1." << this->listOfBooks[i]->Title << endl;
-                // }
                 cout
                     << left
                     << setw(4)
@@ -660,7 +665,7 @@ class Librarian: public User
         void DeleteBook()
         {
             string titleString;
-            cout << "Type Title :";
+            cout << "\nType Title :";
             cin >> titleString;
             bookDatabase.Delete(titleString);
             return;
@@ -675,6 +680,29 @@ class Librarian: public User
         }
         void SearchUser(UserDatabase *userDatabase);
         void Instructions(UserDatabase *userDatabase);
+        void ListOfBooks_User(UserDatabase *userDatabase);
+        void BookIssuedToUser()
+        {
+            string bookTitle;
+            cout << "\nPlease type the Book Title: ";
+            cin >> bookTitle;
+            for (int i = 0; i < bookDatabase.books.size(); i++)
+            {
+                if(bookTitle==bookDatabase.books[i].Title)
+                {
+                    if(bookDatabase.books[i].issuedToUser!="-None-")
+                        cout << "\n\"" << bookTitle << "\" is issued to \"" << bookDatabase.books[i].issuedToUser << "\"" << endl;
+                    else
+                        cout << "\n\"" << bookTitle << "\" isn't issued yet" << endl;
+                    return;
+                }
+            }
+            cout << "\nCouldn't find a Book with title \"" << bookTitle << "\"" << endl;
+        }
+        string className()
+        {
+            return "librarian";
+        }
 };
 
 class UserDatabase
@@ -739,7 +767,7 @@ class UserDatabase
                 users.push_back(userPointer);
             }
             else
-                cout << "class name: \"" << className << "\" doesn't exist!" << endl;
+                cout << "\nUser Type \"" << className << "\" doesn't exist!" << endl;
         }
         void Update()
         {
@@ -814,12 +842,21 @@ class UserDatabase
             {
                 if(userString==users[i]->id)
                 {
-                    users.erase(users.begin() + i);
-                    cout << "Succesfully deleted \"" << users[i]->name << "\" from users list" << endl;
+                    string confirm;
+                    cout << "Are you sure you want to Delete User \"" << users[i]->name << "\" ?" << endl;
+                    cout << "Type y/n: ";
+                    cin >> confirm;
+                    if(confirm=="y")
+                    {
+                        cout << "\nSuccessfully Deleted User \"" << users[i]->name << " \" from users list" << endl;
+                        users.erase(users.begin() + i);
+                    }
+                    else
+                        cout << "\nAborted Deletion of Book \"" << users[i]->name << "\"" << endl;
                     return;
                 }
             }
-            cout << "User with ID \"" << userString << "\" doesn't exist!" << endl;
+            cout << "\nUser with ID \"" << userString << "\" doesn't exist!" << endl;
         }
         User* Search(string nameString)
         {
@@ -837,14 +874,48 @@ class UserDatabase
         }
         void Display()
         {
-            cout << "List of " << users.size() << " users:" << endl;
-            for (int i = 0; i < users.size(); i++)
+            if(this->users.size() == 0)
             {
-                cout << i + 1 << ". " << users[i]->name << endl;
+                cout << "\nThere's no User to display!" << endl;
+                return;
+            }
+            cout << "\nList of Users:\n" << endl;
+            cout
+                << left
+                << setw(4)
+                << "Sr."
+                << left
+                << setw(20)
+                << "User Name"
+                << left
+                << setw(20)
+                << "ID"
+                << left
+                << setw(20)
+                << "Type of User"
+                << endl;
+            std::string str("");
+            str.insert(0, 64, '-');
+            cout << str << endl;
+            for (int i = 0; i < this->users.size(); i++)
+            {
+                cout
+                    << left
+                    << setw(4)
+                    << i + 1
+                    << left
+                    << setw(20)
+                    << this->users[i]->name
+                    << left
+                    << setw(20)
+                    << this->users[i]->id
+                    << left
+                    << setw(20)
+                    << this->users[i]->className()
+                    << endl;
             }
             return;
         }
-        
 };
 
 void Librarian::Instructions(UserDatabase* userDatabase)
@@ -853,7 +924,7 @@ void Librarian::Instructions(UserDatabase* userDatabase)
     int ins;
     string pls = "Please type instruction number :";
     string help = "\n---Type '0' to show set of instructions---";
-    string instructionsSet = "\n-1.Logout\n1.Add a Book\n2.Add a User\n3.Delete a Book\n4.Delete a User\n5.List all Books\n6.List all Users"; // type -1 to logout
+    string instructionsSet = "\n-1.Logout\n1.Add a Book\n2.Add a User\n3.List all Books\n4.List all Users\n5.Update a Book\n6.Update a User\n7.Delete a Book\n8.Delete a User\n9.Check which book is issued to which user\n10.Check list of Books issued to a User";
     string wrong = "\nWrong instruction number!";
     while(true)
     {
@@ -879,29 +950,36 @@ void Librarian::Instructions(UserDatabase* userDatabase)
             break;
 
         case 3:
-            this->DeleteBook();
-            break;
-        
-        case 4:
-            this->DeleteUser(userDatabase);
-            break;
-
-        case 5:
             bookDatabase.Display();
             break;
         
-        case 6:
+        case 4:
             userDatabase->Display();
+            break;
+
+        case 5:
+            bookDatabase.Update();
+            break;
+        
+        case 6:
+            userDatabase->Update();
             break;
 
         case 7:
-            userDatabase->Display();
+            this->DeleteBook();
             break;
 
         case 8:
-            userDatabase->Display();
+            this->DeleteUser(userDatabase);
             break;
 
+        case 9:
+            this->BookIssuedToUser();
+            break;
+
+        case 10:
+            ListOfBooks_User(userDatabase);
+            break;
         default:
             cout << wrong << endl;
             break;
@@ -912,7 +990,7 @@ void Librarian::Instructions(UserDatabase* userDatabase)
 void Librarian::DeleteUser(UserDatabase* userDatabase)
 {
     string userString;
-    cout << "Type ID of user :";
+    cout << "\nType ID of user :";
     cin >> userString;
     userDatabase->Delete(userString);
     return;
@@ -924,12 +1002,43 @@ void Librarian::SearchUser(UserDatabase* userDatabase)
     cin >> idString;
     userDatabase->Search(idString);
 }
-
-string className()
+void Librarian::AddUser(UserDatabase* userDatabase)
 {
-    return "librarian";
-}
+    string nameString, idString, passwordString, className;
+    cout << "\nPlease type info of the User to be added:\n" << endl;
+    cout << "Type Name :";
+    cin >> nameString;
+    cout << "Type ID :";
+    cin >> idString;
+    cout << "Type Password :";
+    cin >> passwordString;
+    cout << "Type User Type :";
+    cin >> className;
+    userDatabase->Add(nameString, idString, passwordString, className);
+    cout << "\nSuccesfully Added User \"" << nameString << "\"" << endl;
 
+    std::ofstream userFile;
+    userFile.open("UserDatabase.csv", std::ofstream::out | std::ofstream::app);
+    userFile << endl
+                << nameString << "," << idString << "," << passwordString << "," << className;
+    userFile.close();
+}
+void Librarian::ListOfBooks_User(UserDatabase *userDatabase)
+{
+    string userString;
+    cout << "\nType ID of user :";
+    cin >> userString;
+    for (int i = 0; i < userDatabase->users.size();i++)
+    {
+        if(userString==userDatabase->users[i]->id)
+        {
+            cout << "\n\"" << userDatabase->users[i]->name << "\" has issued " << userDatabase->users[i]->listOfBooks.size() << " books:" << endl;
+            userDatabase->users[i]->Display();
+            return;
+        }
+    }
+    cout << "\nCouldn't find any User with ID \"" << userString << "\"\n" << endl;
+}
 
 User* Login(UserDatabase* userDatabase)
 {
@@ -963,26 +1072,6 @@ User* Login(UserDatabase* userDatabase)
     User* null_ptr = NULL;
     return null_ptr; //make it dynamic, put time limit
 };
-void Librarian::AddUser(UserDatabase* userDatabase)
-        {
-            string nameString, idString, passwordString, className;
-            cout << "Please type info of the User to be added:" << endl;
-            cout << "Type Name :";
-            cin >> nameString;
-            cout << "Type ID :";
-            cin >> idString;
-            cout << "Type Password :";
-            cin >> passwordString;
-            cout << "Type User Type :";
-            cin >> className;
-            userDatabase->Add(nameString, idString, passwordString, className);
-
-            std::ofstream userFile;
-            userFile.open("UserDatabase.csv", std::ofstream::out | std::ofstream::app);
-            userFile << endl
-                     << nameString << "," << idString << "," << passwordString << "," << className;
-            userFile.close();
-        }
 
 int main()
 {
@@ -990,6 +1079,7 @@ int main()
     User *user;
     while(true)
     {
+        system ("CLS");
         user = Login(&userDatabase);
         if(user != NULL)
         {
