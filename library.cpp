@@ -7,11 +7,26 @@
 
 using namespace std;
 
+
 time_t now = time(0);
     tm *ltm = localtime(&now);
     // cout << "Year: " << 1900 + ltm->tm_year<<endl;
     // cout << "Month: "<< 1 + ltm->tm_mon<< endl;
     // cout << "Day: "<< ltm->tm_mday << endl;
+int diffTime(int day, int month, int year)
+{
+    struct tm a = {0, 0, 0, day, month, year};
+    struct tm b = {0, 0, 0, ltm->tm_mday, 1 + ltm->tm_mon, 1900 + ltm->tm_year};
+    time_t x = mktime(&a);
+    time_t y = mktime(&b);
+    if ( x != (time_t)(-1) && y != (time_t)(-1) )
+    {
+        double difference = difftime(y, x) / (60 * 60 * 24);
+        return (int)difference;
+    }
+    else
+        return 0;
+}
 
 class Book
 {
@@ -31,12 +46,12 @@ class Book
             this->ISBN = ISBNString;
             this->Publication = PublicationString;
         }
-        Book* Book_Request(string userType)
+        Book* Book_Request(int timeLimit)
         {
             Book *book = new Book;
             if(this->dueDate == ltm->tm_mday && this->dueMonth == 1 + ltm->tm_mon && this->dueYear == 1900 + ltm->tm_year)
             {
-                dueDate += (userType == "student") ? 30 : 60;
+                dueDate += timeLimit;
                 while(dueDate>30)
                 {
                     dueMonth++;
@@ -100,6 +115,7 @@ class BookDatabase
         void Add()
         {
             string TitleString, AuthorString, ISBNString, PublicationString;
+            cout << "Please type info of the Book to be added:" << endl;
             cout << "Type Title :";
             cin >> TitleString;
             cout << "Type Author :";
@@ -236,6 +252,7 @@ class BookDatabase
         }
 };
 
+class UserDatabase;
 BookDatabase bookDatabase;
 
 class User
@@ -244,32 +261,45 @@ class User
         string name;
         string id;
         string password;
-        vector<Book> listOfBooks;
+        vector<Book*> listOfBooks;
 
         friend class UserDatabase;
         friend class Professor;
         friend class Student;
         friend class Librarian;
-        virtual void Instructions()
+        virtual void Instructions(UserDatabase*userDatabase)
         {
             cout << "User instructions..." << endl;
         }
-        virtual void Calculate_fine()
+        void Calculate_fine(int fineRate)
         {
-            cout << "ye wala calculate ni access karna h" << endl;
+            int Fine_amount = 0;
+            for (int i = 0; i < listOfBooks.size(); i++)
+            {
+                int timeDifference = diffTime(listOfBooks[i]->dueDate, listOfBooks[i]->dueMonth, listOfBooks[i]->dueYear);
+                Fine_amount += (timeDifference>0) ? (fineRate*timeDifference) : 0;
+            }
+            cout << "The total fine of the User \"" << this->name << "\" is: Rs." << Fine_amount << endl;
+            return;
         }
-        virtual void Clear_fine_amount()
+        void Clear_fine_amount()
         {
-            cout << "ye wala clear ni access karna h" << endl;
+            for (int i = 0; i < listOfBooks.size(); i++)
+            {
+                listOfBooks[i]->dueDate = ltm->tm_mday;
+                listOfBooks[i]->dueMonth = 1 + ltm->tm_mon;
+                listOfBooks[i]->dueYear = 1900 + ltm->tm_year;
+                listOfBooks.erase(listOfBooks.begin() + i);
+            }
+            return;
         }
         virtual string className()
         {
-            cout << "ye wala className ni access karna h" << endl;
+            cout << "shouldn't be accessible" << endl;
             return "noooo";
         }
-        void RequestBook()
+        void RequestBook(int timeLimit)
         {
-            cout << "Sorry, this book is not available!" << endl;
             cout << "This is the list of available books:" << endl;
             int num;
             for (int i = 0; i < bookDatabase.books.size(); i++)
@@ -279,39 +309,54 @@ class User
                     cout << "i+1." << bookDatabase.books[i].Title << " \"" << endl;
                 }
             }
-            cout << "Type your choice :";
-            cin >> num;
-            Book *_book = bookDatabase.books[num - 1].Book_Request(this->className());
-            this->listOfBooks.push_back(*_book);
+            while(true)
+            {
+                if(this->className()=="student" && this->listOfBooks.size()==5)
+                {
+                    cout << "Can't issue more than 5 books at a time!" << endl;
+                    break;
+                }
+                cout << "Type -1 to Return\nType your choice :";
+                cin >> num;
+                Book *_book = bookDatabase.books[num - 1].Book_Request(timeLimit);
+                if(_book!=NULL)
+                {
+                    this->listOfBooks.push_back(_book);
+                    cout << "Succesfully issued book: \"" << _book->Title << "\"" << endl;
+                }
+                else
+                    cout << "Please choose only those books which are available" << endl;
+            }
+            return;
+        }
+        void Display()
+        {
+            for (int i = 0; i < this->listOfBooks.size();i++)
+            {
+                cout << "i+1." << this->listOfBooks[i]->Title << endl;
+            }
+            return;
         }
 };
 
 class Professor: public User
 {
     public:
-        int Fine_amount;
-    
+        int fineRate = 5;
+        int timeLimit = 60;
         Professor(string nameString = "ab", string idString = "200026", string passwordString = "1234")
         {
             name = nameString;
             id = idString;
             password = passwordString;
         }
-        void Calculate_fine()
-        {
-            cout << "calculating fine" << endl;
-        }
-        void Clear_fine_amount()
-        {
-            cout << "clearing fine amount" << endl;
-        }
-        void Instructions()
+        void Instructions(UserDatabase* userDatabase)
         {
             cout << "Loging in as a Professor" << endl;
             int ins;
             string pls = "Please type instruction number :";
             string help = "---Type '0' to show set of instructions---";
-            string instructionsSet = ""; //type -1 to logout
+            string instructionsSet = "-1.Logout\n1.Display all books\n2.Display all your issued books\n3.Check availability/Issue book\n4.Calculate Fine\n5.Clear Fine Amount\n.";
             string wrong = "Wrong instruction number!";
             while(true)
             {
@@ -329,10 +374,22 @@ class Professor: public User
                     break;
                 
                 case 1:
-                    this->Calculate_fine();
+                    bookDatabase.Display();
+                    break;
+
+                case 2:
+                    this->Display();
+                    break;
+
+                case 3:
+                    this->RequestBook(this->timeLimit);
+                    break;
+
+                case 4:
+                    this->Calculate_fine(this->fineRate);
                     break;
                 
-                case 2:
+                case 5:
                     this->Clear_fine_amount();
                     break;
                 
@@ -351,29 +408,21 @@ class Professor: public User
 class Student: public User
 {
     public:
-        int Fine_amount;
-    
+        int fineRate = 2;
+        int timeLimit = 30;
         Student(string nameString = "Abhishek", string idString = "200026", string passwordString = "1234")
         {
             User::name = nameString;
             User::id = idString;
             User::password = passwordString;
         }
-        void Calculate_fine()
-        {
-            cout << "calculating fine" << endl;
-        }
-        void Clear_fine_amount()
-        {
-            cout << "clearing fine amount" << endl;
-        }
-        void Instructions()
+        void Instructions(UserDatabase* userDatabase)
         {
             cout << "Loging in as a Student" << endl;
             int ins;
             string pls = "Please type instruction number :";
             string help = "---Type '0' to show set of instructions---";
-            string instructionsSet = "1.Calculate Fine\n2.Clear Fine Amount\n."; //type -1 to logout
+            string instructionsSet = "-1.Logout\n1.Display all books\n2.Display all your issued books\n3.Check availability/Issue book\n4.Calculate Fine\n5.Clear Fine Amount\n.";
             string wrong = "Wrong instruction number!";
             while(true)
             {
@@ -391,10 +440,22 @@ class Student: public User
                     break;
                 
                 case 1:
-                    this->Calculate_fine();
+                    bookDatabase.Display();
+                    break;
+
+                case 2:
+                    this->Display();
+                    break;
+
+                case 3:
+                    this->RequestBook(this->timeLimit);
+                    break;
+
+                case 4:
+                    this->Calculate_fine(this->fineRate);
                     break;
                 
-                case 2:
+                case 5:
                     this->Clear_fine_amount();
                     break;
                 
@@ -424,7 +485,8 @@ class Librarian: public User
             bookDatabase.Add();
             return;
         }
-        void Update()
+        void AddUser(UserDatabase *userDatabase);
+        void UpdateBook()
         {
             bookDatabase.Update();
             return;
@@ -437,72 +499,16 @@ class Librarian: public User
             bookDatabase.Delete(titleString);
             return;
         }
-        void DeleteUser()
+        void DeleteUser(UserDatabase *userDatabase);
+        void SearchBook()
         {
-            string userString;
-            cout << "Type Username :";
-            cin >> userString;
-            //userDatabase.Delete(userString);
-            return;
+            string titleString;
+            cout << "Type the Title of the Book you want to search :";
+            cin >> titleString;
+            bookDatabase.Search(titleString);
         }
-        void Instructions()
-        {
-            cout << "Loging in as a Librarian" << endl;
-            int ins;
-            string pls = "Please type instruction number :";
-            string help = "---Type '0' to show set of instructions---";
-            string instructionsSet = "-1.Logout\n1.Add a Book\n2.Add a User\n3.Delete a Book\n4.Delete a User\n5.List all Books\n6.List all Users"; // type -1 to logout
-            string wrong = "Wrong instruction number!";
-            while(true)
-            {
-                cout << help << endl
-                     << pls;
-                cin >> ins;
-                switch (ins)
-                {
-                case -1:
-                    return;
-                    break;
-                
-                case 0:
-                    cout << instructionsSet << endl;
-                    break;
-                
-                case 1:
-                    this->AddBook();
-                    break;
-                
-                case 2:
-                    //this->userDatabase.Add(); CHECK ORDER OF INSTANTIATION!!
-                    break;
-
-                case 3:
-                    this->DeleteBook();
-                    break;
-                
-                case 4:
-                    //this->DeleteUser(); CHECK ORDER OF INSTANTIATION!!
-                    break;
-
-                case 5:
-                    bookDatabase.Display();
-                    break;
-                
-                case 6:
-                    //userDatabase->Display(); CHECK ORDER OF INSTANTIATION!!
-                    break;
-
-                default:
-                    cout << wrong << endl;
-                    break;
-                }
-            }
-            return;
-        }
-        string className()
-        {
-            return "librarian";
-        }
+        void SearchUser(UserDatabase *userDatabase);
+        void Instructions(UserDatabase *userDatabase);
 };
 
 class UserDatabase
@@ -574,9 +580,100 @@ class UserDatabase
             else
                 cout << "class name: \"" << className << "\" doesn't exist!" << endl;
         }
-        // void Update();
-        // void Delete();
-        // void Search();
+        void Update()
+        {
+            string idString;
+            string instructionSet = "-1.Return\n1.Change Name\n2.Change ID\n3.Change Password";
+            string help = "---Type '0' to show set of instructions---";
+            string wrong = "Wrong instruction number!";
+            string pls = "Type your choice: ";
+            int i, ins;
+            cout << "Type User ID: ";
+            cin >> idString;
+            for (i = 0; i < users.size(); i++)
+            {
+                if(users[i]->name.compare(idString)==0)
+                    break;
+            }
+            if(i == users.size())
+            {
+                cout << "User having ID as \"" << idString << "\" doesn't exist!" << endl;
+                return;
+            }
+            while(true)
+            {
+                cout << help << endl
+                    << pls;
+                cin >> ins;
+                switch (ins)
+                {
+                case -1:
+                    return;
+                    break;
+                
+                case 1:
+                {
+                    string newName;
+                    cout << "Type new User Name :";
+                    cin >> newName;
+                    cout << "Successfully changed Name of User from \"" << users[i]->name << "\" to \"" << newName<< "\"" << endl;
+                    users[i]->name = newName;
+                    break;
+                }
+
+                case 2:
+                {
+                    string newID;
+                    cout << "Type new ID :";
+                    cin >> newID;
+                    cout << "Successfully changed ID of User from \"" << users[i]->id << "\" to \"" << newID << "\"" << endl;
+                    users[i]->id = newID;
+                    break;
+                }
+
+                case 3:
+                {
+                    string newPassword;
+                    cout << "Type new Password :";
+                    cin >> newPassword;
+                    cout << "Successfully changed Password of User from \"" << users[i]->password << "\" to \"" << newPassword << "\"" << endl;
+                    users[i]->password = newPassword;
+                    break;
+                }
+
+                default:
+                    cout << wrong << endl;
+                    break;
+                }
+            }
+        }
+        void Delete(string userString)
+        {
+            for (int i = 0; i < users.size(); i++)
+            {
+                if(userString==users[i]->id)
+                {
+                    users.erase(users.begin() + i);
+                    cout << "Succesfully deleted \"" << users[i]->name << "\" from users list" << endl;
+                    return;
+                }
+            }
+            cout << "User with ID \"" << userString << "\" doesn't exist!" << endl;
+        }
+        User* Search(string nameString)
+        {
+            for (int i = 0; i < users.size(); i++)
+            {
+                if(users[i]->name.compare(nameString)==0)
+                {
+                    cout << "Found book tiled as \"" << users[i]->name << " \"" << endl;
+                    return users[i];
+                }
+            }
+            cout << "Book titled as \"" << nameString << " \" doesn't exist!" << endl;
+            User *userPointer = NULL;
+            return userPointer;
+        }
         void Display()
         {
             cout << "List of " << users.size() << " users:" << endl;
@@ -589,10 +686,93 @@ class UserDatabase
         
 };
 
-UserDatabase userDatabase;
+//UserDatabase userDatabase;
+
+void Librarian::Instructions(UserDatabase* userDatabase)
+{
+    cout << "Loging in as a Librarian" << endl;
+    int ins;
+    string pls = "Please type instruction number :";
+    string help = "---Type '0' to show set of instructions---";
+    string instructionsSet = "-1.Logout\n1.Add a Book\n2.Add a User\n3.Delete a Book\n4.Delete a User\n5.List all Books\n6.List all Users"; // type -1 to logout
+    string wrong = "Wrong instruction number!";
+    while(true)
+    {
+        cout << help << endl
+                << pls;
+        cin >> ins;
+        switch (ins)
+        {
+        case -1:
+            return;
+            break;
+        
+        case 0:
+            cout << instructionsSet << endl;
+            break;
+        
+        case 1:
+            this->AddBook();
+            break;
+        
+        case 2:
+            this->AddUser(userDatabase);
+            break;
+
+        case 3:
+            this->DeleteBook();
+            break;
+        
+        case 4:
+            this->DeleteUser(userDatabase);
+            break;
+
+        case 5:
+            bookDatabase.Display();
+            break;
+        
+        case 6:
+            userDatabase->Display();
+            break;
+
+        case 7:
+            userDatabase->Display();
+            break;
+
+        case 8:
+            userDatabase->Display();
+            break;
+
+        default:
+            cout << wrong << endl;
+            break;
+        }
+    }
+    return;
+}
+void Librarian::DeleteUser(UserDatabase* userDatabase)
+{
+    string userString;
+    cout << "Type ID of user :";
+    cin >> userString;
+    userDatabase->Delete(userString);
+    return;
+}
+void Librarian::SearchUser(UserDatabase* userDatabase)
+{
+    string idString;
+    cout << "Type the ID of the user you want to search :";
+    cin >> idString;
+    userDatabase->Search(idString);
+}
+
+string className()
+{
+    return "librarian";
+}
 
 
-User* Login()
+User* Login(UserDatabase* userDatabase)
 {
     string userName;
     string userPassword;
@@ -604,7 +784,7 @@ User* Login()
         cin >> userName;
         cout << "Please enter your user password: ";
         cin >> userPassword;
-        for (auto user : userDatabase.users)
+        for (auto user : userDatabase->users)
         {
             if (userName.compare(user->name) == 0 && userPassword.compare(user->password) == 0)
             {
@@ -623,19 +803,38 @@ User* Login()
     cout << "Too many login attempts! The program will now terminate." << endl;
     User* null_ptr = NULL;
     return null_ptr; //make it dynamic, put time limit
-}
+};
+void Librarian::AddUser(UserDatabase* userDatabase)
+        {
+            string nameString, idString, passwordString, className;
+            cout << "Please type info of the User to be added:" << endl;
+            cout << "Type Name :";
+            cin >> nameString;
+            cout << "Type ID :";
+            cin >> idString;
+            cout << "Type Password :";
+            cin >> passwordString;
+            cout << "Type User Type :";
+            cin >> className;
+            userDatabase->Add(nameString, idString, passwordString, className);
+
+            std::ofstream userFile;
+            userFile.open("UserDatabase.csv", std::ofstream::out | std::ofstream::app);
+            userFile << endl
+                     << nameString << "," << idString << "," << passwordString << "," << className;
+            userFile.close();
+        }
 
 int main()
 {
-    //UserDatabase userDatabase;
+    UserDatabase userDatabase;
     User *user;
     while(true)
     {
-        user = Login();
-        //cout << user->name << endl;
+        user = Login(&userDatabase);
         if(user != NULL)
         {
-            user->Instructions();
+            user->Instructions(&userDatabase);
         }
         else
         {
