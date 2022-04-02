@@ -130,7 +130,7 @@ class BookDatabase
             books.push_back(bookObject);
             cout << "\nSuccesfully Added Book \"" << TitleString << "\"" << endl;
 
-            std::ofstream bookFile; //("BookDatabase.csv");
+            std::ofstream bookFile;
             bookFile.open("BookDatabase.csv", std::ofstream::out | std::ofstream::app);
             bookFile << endl
                      << TitleString << "," << AuthorString << "," << ISBNString << "," << PublicationString;
@@ -163,58 +163,76 @@ class BookDatabase
                 cin >> ins;
                 switch (ins)
                 {
-                case -1:
-                    return;
-                    break;
-                
-                case 0:
-                    cout << instructionSet << endl;
-                    break;
+                    case -1:
+                        return;
+                        break;
+                    
+                    case 0:
+                        cout << instructionSet << endl;
+                        break;
 
-                case 1:
+                    case 1:
+                    {
+                        string newTitle;
+                        cout << "Type new Title :";
+                        cin >> newTitle;
+                        cout << "\nSuccessfully changed title of book \"" << books[i].Title << "\" to \"" << newTitle << "\"" << endl;
+                        books[i].Title = newTitle;
+                        break;
+                    }
+
+                    case 2:
+                    {
+                        string newAuthor;
+                        cout << "Type new Author :";
+                        cin >> newAuthor;
+                        cout << "\nSuccessfully changed Author of book \"" << books[i].Author << "\" to \"" << newAuthor << "\"" << endl;
+                        books[i].Author = newAuthor;
+                        break;
+                    }
+
+                    case 3:
+                    {
+                        string newISBN;
+                        cout << "Type new ISBN :";
+                        cin >> newISBN;
+                        cout << "\nSuccessfully changed ISBN of book \"" << books[i].ISBN << "\" to \"" << newISBN << "\"" << endl;
+                        books[i].ISBN = newISBN;
+                        break;
+                    }
+
+                    case 4:
+                    {
+                        string newPublication;
+                        cout << "Type new Publication :";
+                        cin >> newPublication;
+                        cout << "\nSuccessfully changed Publication of book \"" << books[i].Publication << "\" to \"" << newPublication<< "\"" << endl;
+                        books[i].Publication = newPublication;
+                        break;
+                    }
+
+                    default:
+                        cout << wrong << endl;
+                        break;
+                }
+                fstream fin, fout;
+                fin.open("BookDatabase.csv", ios::in);
+                fout.open("BookDatabaseNew.csv", ios::out);
+                string line;
+                int iterator = 0;
+                while(getline(fin, line))
                 {
-                    string newTitle;
-                    cout << "Type new Title :";
-                    cin >> newTitle;
-                    cout << "\nSuccessfully changed title of book \"" << books[i].Title << "\" to \"" << newTitle << "\"" << endl;
-                    books[i].Title = newTitle;
-                    break;
+                    stringstream str(line);
+                    if(iterator!=i)
+                        fout << line << endl;
+                    else
+                        fout << books[i].Title << "," << books[i].Author << "," << books[i].ISBN << "," << books[i].Publication << endl;
+                    iterator++;
                 }
-
-                case 2:
-                {
-                    string newAuthor;
-                    cout << "Type new Author :";
-                    cin >> newAuthor;
-                    cout << "\nSuccessfully changed Author of book \"" << books[i].Author << "\" to \"" << newAuthor << "\"" << endl;
-                    books[i].Author = newAuthor;
-                    break;
-                }
-
-                case 3:
-                {
-                    string newISBN;
-                    cout << "Type new ISBN :";
-                    cin >> newISBN;
-                    cout << "\nSuccessfully changed ISBN of book \"" << books[i].ISBN << "\" to \"" << newISBN << "\"" << endl;
-                    books[i].ISBN = newISBN;
-                    break;
-                }
-
-                case 4:
-                {
-                    string newPublication;
-                    cout << "Type new Publication :";
-                    cin >> newPublication;
-                    cout << "\nSuccessfully changed Publication of book \"" << books[i].Publication << "\" to \"" << newPublication<< "\"" << endl;
-                    books[i].Publication = newPublication;
-                    break;
-                }
-
-                default:
-                    cout << wrong << endl;
-                    break;
-                }
+                fin.close();
+                fout.close();
+                remove("BookDatabase.csv");
+                rename("BookDatabaseNew.csv", "BookDatabase.csv");
             }
         }
         void Delete(string titleString)
@@ -231,6 +249,22 @@ class BookDatabase
                     {
                         cout << "\nSuccessfully Deleted Book \"" << titleString << " \" from books list" << endl;
                         books.erase(books.begin() + i);
+
+                        fstream fin, fout;
+                        fin.open("BookDatabase.csv", ios::in);
+                        fout.open("BookDatabaseNew.csv", ios::out);
+                        string line;
+                        int iterator = 0;
+                        while(getline(fin, line))
+                        {
+                            stringstream str(line);
+                            if(iterator!=i) fout << line << endl;
+                            iterator++;
+                        }
+                        fin.close();
+                        fout.close();
+                        remove("BookDatabase.csv");
+                        rename("BookDatabaseNew.csv", "BookDatabase.csv");
                     }
                     else
                         cout << "\nAborted Deletion of Book \"" << titleString << "\"" << endl;
@@ -716,15 +750,10 @@ class UserDatabase
     
         UserDatabase()
         {
-            Add("Abhishek", "200026", "1234", "student");
-            Add("abhi", "200026", "1234", "librarian");
-
             string fname = "UserDatabase.csv";
-
             vector<vector<string>> content;
             vector<string> row;
             string line, word;
-        
             fstream file (fname, ios::in);
             if(file.is_open())
             {
@@ -749,12 +778,18 @@ class UserDatabase
         }
         void Add(string nameString, string idString, string passwordString, string className)
         {
+            fstream fin;
+            fin.open("UserDatabase.csv", ios::in);
             if(className == "student")
             {
                 User *userPointer = new Student;
                 Student studentObject = Student(nameString, idString, passwordString);
                 *userPointer = studentObject;
                 users.push_back(userPointer);
+                fin << endl
+                    << studentObject.name << "," << studentObject.id << "," << studentObject.password << ","
+                    << "student";
+                cout << "\nSuccesfully Added User \"" << nameString << "\"" << endl;
             }
             else if(className == "professor")
             {
@@ -762,6 +797,10 @@ class UserDatabase
                 Professor professorObject = Professor(nameString, idString, passwordString);
                 *userPointer = professorObject;
                 users.push_back(userPointer);
+                fin << endl
+                    << professorObject.name << "," << professorObject.id << "," << professorObject.password << ","
+                    << "professor";
+                cout << "\nSuccesfully Added User \"" << nameString << "\"" << endl;
             }
             else if(className == "librarian")
             {
@@ -769,9 +808,14 @@ class UserDatabase
                 Librarian librarianObject = Librarian(nameString, idString, passwordString);
                 *userPointer = librarianObject;
                 users.push_back(userPointer);
+                fin << endl
+                    << librarianObject.name << "," << librarianObject.id << "," << librarianObject.password << ","
+                    << "librarian";
+                cout << "\nSuccesfully Added User \"" << nameString << "\"" << endl;
             }
             else
                 cout << "\nUser Type \"" << className << "\" doesn't exist!" << endl;
+            fin.close();
         }
         void Update()
         {
@@ -842,6 +886,24 @@ class UserDatabase
                     cout << wrong << endl;
                     break;
                 }
+                fstream fin, fout;
+                fin.open("UserDatabase.csv", ios::in);
+                fout.open("UserDatabaseNew.csv", ios::out);
+                string line;
+                int iterator = 0;
+                while(getline(fin, line))
+                {
+                    stringstream str(line);
+                    if(iterator!=i)
+                        fout << line << endl;
+                    else
+                        fout << users[i]->name << "," << users[i]->id << "," << users[i]->password << "," << users[i]->className() << endl;
+                    iterator++;
+                }
+                fin.close();
+                fout.close();
+                remove("UserDatabase.csv");
+                rename("UserDatabaseNew.csv", "UserDatabase.csv");
             }
         }
         void Delete(string userString)
@@ -858,6 +920,22 @@ class UserDatabase
                     {
                         cout << "\nSuccessfully Deleted User \"" << users[i]->name << " \" from users list" << endl;
                         users.erase(users.begin() + i);
+
+                        fstream fin, fout;
+                        fin.open("UserDatabase.csv", ios::in);
+                        fout.open("UserDatabaseNew.csv", ios::out);
+                        string line;
+                        int iterator = 0;
+                        while(getline(fin, line))
+                        {
+                            stringstream str(line);
+                            if(iterator!=i) fout << line << endl;
+                            iterator++;
+                        }
+                        fin.close();
+                        fout.close();
+                        remove("UserDatabase.csv");
+                        rename("UserDatabaseNew.csv", "UserDatabase.csv");
                     }
                     else
                         cout << "\nAborted Deletion of Book \"" << users[i]->name << "\"" << endl;
@@ -1023,7 +1101,6 @@ void Librarian::AddUser(UserDatabase* userDatabase)
     cout << "Type User Type :";
     cin >> className;
     userDatabase->Add(nameString, idString, passwordString, className);
-    cout << "\nSuccesfully Added User \"" << nameString << "\"" << endl;
 
     std::ofstream userFile;
     userFile.open("UserDatabase.csv", std::ofstream::out | std::ofstream::app);
@@ -1078,7 +1155,7 @@ User* Login(UserDatabase* userDatabase)
     }
     cout << "Too many login attempts! The program will now terminate." << endl;
     User* null_ptr = NULL;
-    return null_ptr; //make it dynamic, put time limit
+    return null_ptr;
 };
 
 int main()
