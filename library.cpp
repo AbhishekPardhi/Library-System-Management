@@ -54,7 +54,7 @@ class Book
         }
         Book* Book_Request(int timeLimit, string idString)
         {
-            Book *book = new Book;
+            Book *book;
             if(this->dueDate == ltm->tm_mday && this->dueMonth == 1 + ltm->tm_mon && this->dueYear == 1900 + ltm->tm_year)
             {
                 time_t now = time( NULL);
@@ -63,10 +63,10 @@ class Book
                 then_tm.tm_sec += timeLimit * 24 * 3600;
                 mktime( &then_tm);
                 this->dueDate = then_tm.tm_mday;
-                this->dueMonth = then_tm.tm_mon;
-                this->dueYear = then_tm.tm_year;
+                this->dueMonth = 1 + then_tm.tm_mon;
+                this->dueYear = 1900 + then_tm.tm_year;
                 this->issuedToUser = idString;
-                *book = *this;
+                book = this;
             }
             else
                 book = NULL;
@@ -258,7 +258,10 @@ class BookDatabase
                         while(getline(fin, line))
                         {
                             stringstream str(line);
-                            if(iterator!=i) fout << line << endl;
+                            if(iterator!=i)
+                                fout << line;
+                            if(iterator!=books.size() && iterator!=i)
+                                fout << endl;
                             iterator++;
                         }
                         fin.close();
@@ -377,9 +380,10 @@ class User
                 this->listOfBooks[i]->dueDate = ltm->tm_mday;
                 this->listOfBooks[i]->dueMonth = 1 + ltm->tm_mon;
                 this->listOfBooks[i]->dueYear = 1900 + ltm->tm_year;
+                this->listOfBooks[i]->issuedToUser = "-None-";
             }
             this->listOfBooks.clear();
-            cout << "\nSuccessfully Returned all issued books\n" << endl;
+            cout << "\nSuccessfully Returned all issued books" << endl;
             return;
         }
         virtual string className()
@@ -464,7 +468,7 @@ class User
                     cout << "\nCan't issue more than 5 books at a time!\n" << endl;
                     break;
                 }
-                cout << "\nType -1 to Return\nType your choice :";
+                cout << "\nType -1 to Return\nType your choice(Sr. of Book) :";
                 cin >> num;
                 if(num==-1)
                     break;
@@ -472,10 +476,10 @@ class User
                 if(_book!=NULL)
                 {
                     this->listOfBooks.push_back(_book);
-                    cout << "\nSuccesfully issued book: \"" << _book->Title << "\"\n" << endl;
+                    cout << "\nSuccesfully issued book: \"" << _book->Title << "\"" << endl;
                 }
                 else
-                    cout << "\nPlease choose only those books which are available!\n" << endl;
+                    cout << "\nPlease choose only those books which are available!" << endl;
             }
             return;
         }
@@ -929,7 +933,10 @@ class UserDatabase
                         while(getline(fin, line))
                         {
                             stringstream str(line);
-                            if(iterator!=i) fout << line << endl;
+                            if(iterator!=i)
+                                fout << line;
+                            if(iterator!=users.size()  && iterator!=i)
+                                fout << endl;
                             iterator++;
                         }
                         fin.close();
