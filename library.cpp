@@ -1131,7 +1131,10 @@ void User::RequestBook(int timeLimit, UserDatabase* userDatabase)
             rename("UserDatabaseNew.csv", "UserDatabase.csv");
         }
         else
+        {
+            system("CLS");
             cout << "\nPlease choose only those books which are available!" << endl;
+        }
     }
     return;
 }
