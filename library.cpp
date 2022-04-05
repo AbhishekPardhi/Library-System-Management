@@ -8,11 +8,10 @@
 
 using namespace std;
 
+#define MAX_LEN 18  // Maximum len of any field of book/user can't be more than 18
+
 time_t now = time(0);
 tm *ltm = localtime(&now);
-// cout << "Year: " << 1900 + ltm->tm_year<<endl;
-// cout << "Month: "<< 1 + ltm->tm_mon<< endl;
-// cout << "Day: "<< ltm->tm_mday << endl;
 
 int diffTime(int day, int month, int year)
 {
@@ -136,7 +135,7 @@ class BookDatabase
             std::ofstream bookFile;
             bookFile.open("BookDatabase.csv", std::ofstream::out | std::ofstream::app);
             bookFile << endl
-                     << TitleString << "," << AuthorString << "," << ISBNString << "," << PublicationString << "," << ltm->tm_mday << "," << 1 + ltm->tm_mon << "," << 1900 + ltm->tm_year << endl;
+                     << TitleString << "," << AuthorString << "," << ISBNString << "," << PublicationString << "," << ltm->tm_mday << "," << 1 + ltm->tm_mon << "," << 1900 + ltm->tm_year;
             bookFile.close();
         }
         void Update()
@@ -227,9 +226,11 @@ class BookDatabase
                 {
                     stringstream str(line);
                     if(iterator!=i)
-                        fout << line << endl;
+                        fout << line;
                     else
-                        fout << books[i].Title << "," << books[i].Author << "," << books[i].ISBN << "," << books[i].Publication << ","  << books[i].dueDate << "," << books[i].dueMonth << "," << books[i].dueYear <<  endl;
+                        fout << books[i].Title << "," << books[i].Author << "," << books[i].ISBN << "," << books[i].Publication << ","  << books[i].dueDate << "," << books[i].dueMonth << "," << books[i].dueYear;
+                    if(iterator!=books.size()-1)
+                            fout << endl;
                     iterator++;
                 }
                 fin.close();
@@ -303,41 +304,41 @@ class BookDatabase
                 cout << "\nList of books:\n" << endl;
                 cout
                     << left
-                    << setw(4)
+                    << setw(5)
                     << "Sr."
                     << left
-                    << setw(12)
+                    << setw(MAX_LEN)
                     << "Title"
                     << left
-                    << setw(12)
+                    << setw(MAX_LEN)
                     << "Author"
                     << left
-                    << setw(15)
+                    << setw(MAX_LEN)
                     << "ISBN"
                     << left
-                    << setw(12)
+                    << setw(MAX_LEN)
                     << "Publication"
                     << endl;
                 std::string str("");
-                str.insert(0, 52, '-');
+                str.insert(0, 85, '-');
                 cout << str << endl;
                 for (int i = 0; i < this->books.size(); i++)
                 {
                     cout
                         << left
-                        << setw(4)
+                        << setw(5)
                         << i+1
                         << left
-                        << setw(12)
+                        << setw(MAX_LEN)
                         << books[i].Title
                         << left
-                        << setw(12)
+                        << setw(MAX_LEN)
                         << books[i].Author
                         << left
-                        << setw(15)
+                        << setw(MAX_LEN)
                         << books[i].ISBN
                         << left
-                        << setw(12)
+                        << setw(MAX_LEN)
                         << books[i].Publication
                         << endl;
                 }
@@ -391,44 +392,44 @@ class User
             {
                 cout
                     << left
-                    << setw(4)
+                    << setw(5)
                     << "Sr."
                     << left
-                    << setw(20)
+                    << setw(MAX_LEN)
                     << "Title"
                     << left
-                    << setw(20)
+                    << setw(MAX_LEN)
                     << "Author"
                     << left
-                    << setw(20)
+                    << setw(MAX_LEN)
                     << "ISBN"
                     << left
-                    << setw(20)
+                    << setw(MAX_LEN)
                     << "Publication"
                     << left
                     << setw(12)
                     << "Due Date"
                     << endl;
                 std::string str("");
-                str.insert(0, 96, '-');
+                str.insert(0, 97, '-');
                 cout << str << endl;
                 for (int i = 0; i < this->listOfBooks.size(); i++)
                 {
                     cout
                         << left
-                        << setw(4)
+                        << setw(5)
                         << i+1
                         << left
-                        << setw(20)
+                        << setw(MAX_LEN)
                         << this->listOfBooks[i]->Title
                         << left
-                        << setw(20)
+                        << setw(MAX_LEN)
                         << this->listOfBooks[i]->Author
                         << left
-                        << setw(20)
+                        << setw(MAX_LEN)
                         << this->listOfBooks[i]->ISBN
                         << left
-                        << setw(20)
+                        << setw(MAX_LEN)
                         << this->listOfBooks[i]->Publication
                         << left
                         << setw(2)
@@ -809,7 +810,7 @@ class UserDatabase
                 {
                     stringstream str(line);
                     if(iterator!=i)
-                        fout << line << endl;
+                        fout << line;
                     else
                     {
                         fout << users[i]->name << "," << users[i]->id << "," << users[i]->password << "," << users[i]->className();
@@ -817,8 +818,9 @@ class UserDatabase
                         {
                             fout << "," << users[i]->listOfBooks[j]->Title;
                         }
-                        fout << endl;
                     }
+                    if(iterator!=users.size())
+                        fout << endl;
                     iterator++;
                 }
                 fin.close();
@@ -892,35 +894,35 @@ class UserDatabase
             cout << "\nList of Users:\n" << endl;
             cout
                 << left
-                << setw(4)
+                << setw(5)
                 << "Sr."
                 << left
-                << setw(20)
+                << setw(MAX_LEN)
                 << "User Name"
                 << left
-                << setw(20)
+                << setw(MAX_LEN)
                 << "ID"
                 << left
-                << setw(20)
+                << setw(MAX_LEN)
                 << "Type of User"
                 << endl;
             std::string str("");
-            str.insert(0, 64, '-');
+            str.insert(0, 65, '-');
             cout << str << endl;
             for (int i = 0; i < this->users.size(); i++)
             {
                 cout
                     << left
-                    << setw(4)
+                    << setw(5)
                     << i + 1
                     << left
-                    << setw(20)
+                    << setw(MAX_LEN)
                     << this->users[i]->name
                     << left
-                    << setw(20)
+                    << setw(MAX_LEN)
                     << this->users[i]->id
                     << left
-                    << setw(20)
+                    << setw(MAX_LEN)
                     << this->users[i]->className()
                     << endl;
             }
@@ -987,46 +989,46 @@ void User::RequestBook(int timeLimit, UserDatabase* userDatabase)
         cout << "\nThis is the list of available books:\n" << endl;
         cout
             << left
-            << setw(4)
+            << setw(5)
             << "Sr."
             << left
-            << setw(20)
+            << setw(MAX_LEN)
             << "Title"
             << left
-            << setw(20)
+            << setw(MAX_LEN)
             << "Author"
             << left
-            << setw(20)
+            << setw(MAX_LEN)
             << "ISBN"
             << left
-            << setw(20)
+            << setw(MAX_LEN)
             << "Publication"
             << left
             << setw(12)
             << "Due Date"
             << endl;
         std::string str("");
-        str.insert(0, 96, '-');
+        str.insert(0, 97, '-');
         cout << str << endl;
         for (int i = 0; i < bookDatabase.books.size(); i++)
         {
-            if(bookDatabase.books[i].dueDate == ltm->tm_mday && bookDatabase.books[i].dueMonth == 1 + ltm->tm_mon && bookDatabase.books[i].dueYear == 1900 + ltm->tm_year)
+            if(diffTime(bookDatabase.books[i].dueDate,bookDatabase.books[i].dueMonth,bookDatabase.books[i].dueYear)<=0)
             {
                 cout
                     << left
-                    << setw(4)
+                    << setw(5)
                     << i+1
                     << left
-                    << setw(20)
+                    << setw(MAX_LEN)
                     << bookDatabase.books[i].Title
                     << left
-                    << setw(20)
+                    << setw(MAX_LEN)
                     << bookDatabase.books[i].Author
                     << left
-                    << setw(20)
+                    << setw(MAX_LEN)
                     << bookDatabase.books[i].ISBN
                     << left
-                    << setw(20)
+                    << setw(MAX_LEN)
                     << bookDatabase.books[i].Publication
                     << left
                     << setw(2)
