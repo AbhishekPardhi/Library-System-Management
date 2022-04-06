@@ -8,7 +8,7 @@
 
 using namespace std;
 
-#define MAX_LEN 18  // Maximum len of any field of book/user can't be more than 18
+#define MAX_LEN 60  // Maximum len of any field of book/user can't be more than 18
 
 time_t now = time(0);
 tm *ltm = localtime(&now);
@@ -122,13 +122,13 @@ class BookDatabase
             string TitleString, AuthorString, ISBNString, PublicationString;
             cout << "\nPlease type info of the Book to be added:\n" << endl;
             cout << "Type Title :";
-            getline(cin, TitleString);
+            getline(cin >> ws, TitleString);
             cout << "Type Author :";
-            getline(cin, AuthorString);
+            getline(cin >> ws, AuthorString);
             cout << "Type ISBN :";
-            getline(cin, ISBNString);
+            getline(cin >> ws, ISBNString);
             cout << "Type Publication :";
-            getline(cin, PublicationString);
+            getline(cin >> ws, PublicationString);
             Book bookObject = Book(TitleString, AuthorString, ISBNString, PublicationString);
             books.push_back(bookObject);
             system("CLS");
@@ -150,7 +150,7 @@ class BookDatabase
             string pls = "Type your choice: ";
             int i, ins;
             cout << "Type book title: ";
-            getline(cin, titleString);
+            getline(cin >> ws, titleString);
             for (i = 0; i < books.size(); i++)
             {
                 if(books[i].Title.compare(titleString)==0)
@@ -183,7 +183,7 @@ class BookDatabase
                     {
                         string newTitle;
                         cout << "Type new Title :";
-                        getline(cin, newTitle);
+                        getline(cin >> ws, newTitle);
                         system("CLS");
                         cout << "\nSuccessfully changed title of book \"" << books[i].Title << "\" to \"" << newTitle << "\"" << endl;
                         books[i].Title = newTitle;
@@ -194,7 +194,7 @@ class BookDatabase
                     {
                         string newAuthor;
                         cout << "Type new Author :";
-                        getline(cin, newAuthor);
+                        getline(cin >> ws, newAuthor);
                         system("CLS");
                         cout << "\nSuccessfully changed Author of book \"" << books[i].Author << "\" to \"" << newAuthor << "\"" << endl;
                         books[i].Author = newAuthor;
@@ -205,7 +205,7 @@ class BookDatabase
                     {
                         string newISBN;
                         cout << "Type new ISBN :";
-                        getline(cin, newISBN);
+                        getline(cin >> ws, newISBN);
                         system("CLS");
                         cout << "\nSuccessfully changed ISBN of book \"" << books[i].ISBN << "\" to \"" << newISBN << "\"" << endl;
                         books[i].ISBN = newISBN;
@@ -216,7 +216,7 @@ class BookDatabase
                     {
                         string newPublication;
                         cout << "Type new Publication :";
-                        getline(cin, newPublication);
+                        getline(cin >> ws, newPublication);
                         system("CLS");
                         cout << "\nSuccessfully changed Publication of book \"" << books[i].Publication << "\" to \"" << newPublication<< "\"" << endl;
                         books[i].Publication = newPublication;
@@ -276,7 +276,7 @@ class BookDatabase
                             stringstream str(line);
                             if(iterator!=i)
                                 fout << line;
-                            if(iterator!=books.size() && iterator!=i)
+                            if(iterator!=books.size()-1 && iterator!=i)
                                 fout << endl;
                             iterator++;
                         }
@@ -333,7 +333,7 @@ class BookDatabase
                     << "Publication"
                     << endl;
                 std::string str("");
-                str.insert(0, 4 * MAX_LEN + 5, '-');
+                str.insert(0, 4 * MAX_LEN - 11, '-');
                 cout << str << endl;
                 for (int i = 0; i < this->books.size(); i++)
                 {
@@ -426,7 +426,7 @@ class User
                     << "Due Date"
                     << endl;
                 std::string str("");
-                str.insert(0, 17 + 4 * MAX_LEN, '-');
+                str.insert(0, 6 + 4 * MAX_LEN, '-');
                 cout << str << endl;
                 for (int i = 0; i < this->listOfBooks.size(); i++)
                 {
@@ -632,7 +632,7 @@ class Librarian: public User
             system ("CLS");
             string titleString;
             cout << "\nType Title :";
-            getline(cin, titleString);
+            getline(cin >> ws, titleString);
             bookDatabase.Delete(titleString);
             return;
         }
@@ -642,7 +642,7 @@ class Librarian: public User
             system ("CLS");
             string titleString;
             cout << "Type the Title of the Book you want to search :";
-            getline(cin, titleString);
+            getline(cin >> ws, titleString);
             bookDatabase.Search(titleString);
         }
         void SearchUser(UserDatabase *userDatabase);
@@ -653,7 +653,7 @@ class Librarian: public User
             system ("CLS");
             string bookTitle;
             cout << "\nPlease type the Book Title: ";
-            getline(cin, bookTitle);
+            getline(cin >> ws, bookTitle);
             for (int i = 0; i < bookDatabase.books.size(); i++)
             {
                 if(bookTitle==bookDatabase.books[i].Title)
@@ -757,7 +757,7 @@ class UserDatabase
             string pls = "Type your choice: ";
             int i, ins;
             cout << "\nType User ID: ";
-            getline(cin, idString);
+            getline(cin >> ws, idString);
             for (i = 0; i < users.size(); i++)
             {
                 if(users[i]->id.compare(idString)==0)
@@ -790,7 +790,7 @@ class UserDatabase
                 {
                     string newName;
                     cout << "Type new User Name :";
-                    getline(cin, newName);
+                    getline(cin >> ws, newName);
                     system("CLS");
                     cout << "\nSuccessfully changed Name of User from \"" << users[i]->name << "\" to \"" << newName<< "\"" << endl;
                     users[i]->name = newName;
@@ -801,7 +801,7 @@ class UserDatabase
                 {
                     string newID;
                     cout << "Type new ID :";
-                    getline(cin, newID);
+                    getline(cin >> ws, newID);
                     system("CLS");
                     cout << "\nSuccessfully changed ID of User from \"" << users[i]->id << "\" to \"" << newID << "\"" << endl;
                     users[i]->id = newID;
@@ -812,7 +812,7 @@ class UserDatabase
                 {
                     string newPassword;
                     cout << "Type new Password :";
-                    getline(cin, newPassword);
+                    getline(cin >> ws, newPassword);
                     system("CLS");
                     cout << "\nSuccessfully changed Password of User from \"" << users[i]->password << "\" to \"" << newPassword << "\"" << endl;
                     users[i]->password = newPassword;
@@ -877,7 +877,7 @@ class UserDatabase
                             stringstream str(line);
                             if(iterator!=i)
                                 fout << line;
-                            if(iterator!=users.size()  && iterator!=i)
+                            if(iterator!=users.size()-1  && iterator!=i)
                                 fout << endl;
                             iterator++;
                         }
@@ -931,7 +931,7 @@ class UserDatabase
                 << "Type of User"
                 << endl;
             std::string str("");
-            str.insert(0, 5 + 3 * MAX_LEN, '-');
+            str.insert(0, 3 * MAX_LEN - 6, '-');
             cout << str << endl;
             for (int i = 0; i < this->users.size(); i++)
             {
@@ -1035,7 +1035,7 @@ void User::RequestBook(int timeLimit, UserDatabase* userDatabase)
             << "Due Date"
             << endl;
         std::string str("");
-        str.insert(0, 17+4*MAX_LEN, '-');
+        str.insert(0, 6 + 4 * MAX_LEN, '-');
         cout << str << endl;
         for (int i = 0; i < bookDatabase.books.size(); i++)
         {
@@ -1216,7 +1216,7 @@ void Librarian::DeleteUser(UserDatabase* userDatabase)
     system ("CLS");
     string userString;
     cout << "\nType ID of user :";
-    getline(cin, userString);
+    getline(cin >> ws, userString);
     userDatabase->Delete(userString);
     return;
 }
@@ -1225,7 +1225,7 @@ void Librarian::SearchUser(UserDatabase* userDatabase)
     system ("CLS");
     string idString;
     cout << "Type the ID of the user you want to search :";
-    getline(cin, idString);
+    getline(cin >> ws, idString);
     userDatabase->Search(idString);
 }
 void Librarian::AddUser(UserDatabase* userDatabase)
@@ -1234,27 +1234,30 @@ void Librarian::AddUser(UserDatabase* userDatabase)
     string nameString, idString, passwordString, className;
     cout << "\nPlease type info of the User to be added:\n" << endl;
     cout << "Type Name :";
-    getline(cin, nameString);
+    getline(cin >> ws, nameString);
     cout << "Type ID :";
-    getline(cin, idString);
+    getline(cin >> ws, idString);
     cout << "Type Password :";
-    getline(cin, passwordString);
+    getline(cin >> ws, passwordString);
     cout << "Type User Type :";
-    getline(cin, className);
+    getline(cin >> ws, className);
     User* userPointer = userDatabase->Add(nameString, idString, passwordString, className);
-    std::ofstream fin;
-    fin.open("UserDatabase.csv", std::ofstream::out | std::ofstream::app);
-    fin << endl
-        << userPointer->name << "," << userPointer->id << "," << userPointer->password << ","
-        << "student";
-    fin.close();
+    if(userPointer!=NULL)
+    {
+        std::ofstream fin;
+        fin.open("UserDatabase.csv", std::ofstream::out | std::ofstream::app);
+        fin << endl
+            << userPointer->name << "," << userPointer->id << "," << userPointer->password << ","
+            << userPointer->className();
+        fin.close();
+    }
 }
 void Librarian::ListOfBooks_User(UserDatabase *userDatabase)
 {
     system ("CLS");
     string userString;
     cout << "\nType ID of user :";
-    getline(cin, userString);
+    getline(cin >> ws, userString);
     for (int i = 0; i < userDatabase->users.size();i++)
     {
         if(userString==userDatabase->users[i]->id)
@@ -1276,9 +1279,9 @@ User* Login(UserDatabase* userDatabase)
     while (loginAttempt < 5)
     {
         cout << "Please enter your user name: ";
-        getline(cin, userName);
+        getline(cin >> ws, userName);
         cout << "Please enter your user password: ";
-        getline(cin, userPassword);
+        getline(cin >> ws, userPassword);
         for (auto user : userDatabase->users)
         {
             if (userName.compare(user->name) == 0 && userPassword.compare(user->password) == 0)
