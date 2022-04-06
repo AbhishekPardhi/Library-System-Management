@@ -1,5 +1,5 @@
 # Library-System-Management
-<h>Library system management implementation in C++</h>
+> This is a Library system management implementation in C++ written by Abhishek Pardhi
 - Run library.exe in FULL screen mode(always)
 - Don't Open database.csv files whiile the code is running(You can open it afterwards)
 - Type username and password (get it from UserDatabase.csv)
