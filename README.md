@@ -1,5 +1,6 @@
 # Library-System-Management
 This is a Library system management implementation in C++ written by ``` Abhishek Pardhi```
+- You can test this code only on Windows (because I've used system("CLS"))
 - Run library.exe in FULL screen mode(always)
 - Don't Open database.csv files whiile the code is running(You can open it afterwards)
 - Type username and password (get it from UserDatabase.csv)
