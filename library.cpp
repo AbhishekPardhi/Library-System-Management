@@ -5,18 +5,30 @@
 #include <sstream>
 #include <fstream>
 #include <iomanip>
+#include <cstdlib>
 
 using namespace std;
 
 #define MAX_LEN 60  // Maximum len of any field of book/user can't be more than 18
+
+void Clear()
+{
+#if defined _WIN32
+    system("cls");
+#elif defined (__LINUX__) || defined(__gnu_linux__) || defined(__linux__)
+    system("clear");
+#elif defined (__APPLE__)
+    system("clear");
+#endif
+}
 
 time_t now = time(0);
 tm *ltm = localtime(&now);
 
 int diffTime(int day, int month, int year)
 {
-    struct tm a = {0, 0, 0, day, month, year};
-    struct tm b = {0, 0, 0, ltm->tm_mday, 1 + ltm->tm_mon, 1900 + ltm->tm_year};
+    struct tm a = {0, 0, 0, day, month -1, year - 1900};
+    struct tm b = {0, 0, 0, ltm->tm_mday, ltm->tm_mon, ltm->tm_year};
     time_t x = mktime(&a);
     time_t y = mktime(&b);
     if ( x != (time_t)(-1) && y != (time_t)(-1) )
@@ -25,7 +37,11 @@ int diffTime(int day, int month, int year)
         return (int)difference;
     }
     else
+    {
+        cout << mktime(&a);
+        cout << " ";
         return 0;
+    }
 }
 
 class Book
@@ -118,7 +134,7 @@ class BookDatabase
         }
         void Add()
         {
-            system ("CLS");
+            Clear();
             string TitleString, AuthorString, ISBNString, PublicationString;
             cout << "\nPlease type info of the Book to be added:\n" << endl;
             cout << "Type Title :";
@@ -142,7 +158,7 @@ class BookDatabase
         }
         void Update()
         {
-            system ("CLS");
+            Clear();
             string titleString;
             string instructionSet = "\n-1.Return\n1.Change Title\n2.Change Author\n3.Change ISBN\n4.Change Publication";
             string help = "\n---Type '0' to show set of instructions to Update Book Info---";
@@ -174,7 +190,7 @@ class BookDatabase
                     
                     case 0:
                     {
-                        system ("CLS");
+                        Clear();
                         cout << instructionSet << endl;
                     }    
                         break;
@@ -251,7 +267,7 @@ class BookDatabase
         }
         void Delete(string titleString)
         {
-            system ("CLS");
+            Clear();
             for (int i = 0; i < books.size(); i++)
             {
                 if(books[i].Title.compare(titleString)==0)
@@ -309,7 +325,7 @@ class BookDatabase
         }
         void Display(int check)
         {
-            system ("CLS");
+            Clear();
             if(books.size() == 0)
                 cout << "\nThere's no book to display!" << endl;
             else
@@ -412,7 +428,7 @@ class User
         }
         void Calculate_fine(int fineRate)
         {
-            system ("CLS");
+            Clear();
             int Fine_amount = 0;
             for (int i = 0; i < this->listOfBooks.size(); i++)
             {
@@ -431,7 +447,7 @@ class User
         void RequestBook(int timeLimit, UserDatabase *userDatabase);
         void Display()
         {
-            system ("CLS");
+            Clear();
             if(listOfBooks.size() == 0)
                 cout << "\n\"" << this->name << "\" hasn't issued any book!" << endl;
             else
@@ -586,7 +602,7 @@ class Student: public User
             int ins;
             string pls = "Please type instruction number :";
             string help = "\n---Type '0' to show set of instructions---";
-            string instructionsSet = "\n-1.Logout\n1.Display all books\n2.Display all your issued books\n3.Check availability/Issue book\n4.Calculate Fine\n5.Clear Fine Amount\n.";
+            string instructionsSet = "\n-1.Logout\n1.Display all books\n2.Display all your issued books\n3.Check availability/Issue book\n4.Calculate Fine\n5.Clear Fine Amount";
             string wrong = "\nWrong instruction number!";
             while(true)
             {
@@ -655,13 +671,13 @@ class Librarian: public User
         void AddUser(UserDatabase *userDatabase);
         void UpdateBook()
         {
-            system ("CLS");
+            Clear();
             bookDatabase.Update();
             return;
         }
         void DeleteBook()
         {
-            system ("CLS");
+            Clear();
             string titleString;
             cout << "\nType Title :";
             getline(cin >> ws, titleString);
@@ -671,7 +687,7 @@ class Librarian: public User
         void DeleteUser(UserDatabase *userDatabase);
         void SearchBook()
         {
-            system ("CLS");
+            Clear();
             string titleString;
             cout << "Type the Title of the Book you want to search :";
             getline(cin >> ws, titleString);
@@ -682,7 +698,7 @@ class Librarian: public User
         void ListOfBooks_User(UserDatabase *userDatabase);
         void BookIssuedToUser()
         {
-            system ("CLS");
+            Clear();
             string bookTitle;
             cout << "\nPlease type the Book Title: ";
             getline(cin >> ws, bookTitle);
@@ -738,7 +754,9 @@ class UserDatabase
                 User *userPointer = Add(content[i][0], content[i][1], content[i][2], content[i][3]);
                 for (int j = 4; j < content[i].size();j++)
                 {
-                    userPointer->listOfBooks.push_back(bookDatabase.Search(content[i][j]));
+                    Book *bookPointer = bookDatabase.Search(content[i][j]);
+                    bookPointer->issuedToUser = content[i][1];
+                    userPointer->listOfBooks.push_back(bookPointer);
                 }
             }
         }
@@ -781,7 +799,7 @@ class UserDatabase
         }
         void Update()
         {
-            system ("CLS");
+            Clear();
             string idString;
             string instructionSet = "\n-1.Return\n1.Change Name\n2.Change ID\n3.Change Password";
             string help = "\n---Type '0' to show set of instructions to Update User Info---";
@@ -931,11 +949,11 @@ class UserDatabase
             {
                 if(users[i]->name.compare(nameString)==0)
                 {
-                    cout << "Found book tiled as \"" << users[i]->name << " \"" << endl;
+                    cout << "Found User named as \"" << users[i]->name << " \"" << endl;
                     return users[i];
                 }
             }
-            cout << "Book titled as \"" << nameString << " \" doesn't exist!" << endl;
+            cout << "User named as \"" << nameString << " \" doesn't exist!" << endl;
             User *userPointer = NULL;
             return userPointer;
         }
@@ -988,7 +1006,7 @@ class UserDatabase
 };
 void User::Clear_fine_amount(UserDatabase* userDatabase)
 {
-    system ("CLS");
+    Clear();
     for (int i = 0; i < this->listOfBooks.size(); i++)
     {
         this->listOfBooks[i]->dueDate = ltm->tm_mday;
@@ -1037,7 +1055,7 @@ void User::Clear_fine_amount(UserDatabase* userDatabase)
 }
 void User::RequestBook(int timeLimit, UserDatabase* userDatabase)
 {
-    system ("CLS");
+    Clear();
     int num;
     while(true)
     {
@@ -1088,6 +1106,20 @@ void User::RequestBook(int timeLimit, UserDatabase* userDatabase)
                     << left
                     << setw(MAX_LEN)
                     << bookDatabase.books[i].Publication
+                    //<< bookDatabase.books[i].dueMonth
+                    << diffTime(bookDatabase.books[i].dueDate,bookDatabase.books[i].dueMonth,bookDatabase.books[i].dueYear)
+                    << " "
+                    << bookDatabase.books[i].dueDate
+                    << " "
+                    << bookDatabase.books[i].dueMonth
+                    << " "
+                    << bookDatabase.books[i].dueYear
+                    << " "
+                    // << ltm->tm_mday
+                    // << " "
+                    // << 1 + ltm->tm_mon
+                    // << " "
+                    // << 1900 + ltm->tm_year
                     << endl;
             }
         }
@@ -1229,7 +1261,7 @@ void Librarian::Instructions(UserDatabase* userDatabase)
 }
 void Librarian::DeleteUser(UserDatabase* userDatabase)
 {
-    system ("CLS");
+    Clear();
     string userString;
     cout << "\nType ID of user :";
     getline(cin >> ws, userString);
@@ -1238,7 +1270,7 @@ void Librarian::DeleteUser(UserDatabase* userDatabase)
 }
 void Librarian::SearchUser(UserDatabase* userDatabase)
 {
-    system ("CLS");
+    Clear();
     string idString;
     cout << "Type the ID of the user you want to search :";
     getline(cin >> ws, idString);
@@ -1246,7 +1278,7 @@ void Librarian::SearchUser(UserDatabase* userDatabase)
 }
 void Librarian::AddUser(UserDatabase* userDatabase)
 {
-    system ("CLS");
+    Clear();
     string nameString, idString, passwordString, className;
     cout << "\nPlease type info of the User to be added:\n" << endl;
     cout << "Type Name :";
@@ -1270,7 +1302,7 @@ void Librarian::AddUser(UserDatabase* userDatabase)
 }
 void Librarian::ListOfBooks_User(UserDatabase *userDatabase)
 {
-    system ("CLS");
+    Clear();
     string userString;
     cout << "\nType ID of user :";
     getline(cin >> ws, userString);
@@ -1302,7 +1334,7 @@ User* Login(UserDatabase* userDatabase)
         {
             if (userName.compare(user->name) == 0 && userPassword.compare(user->password) == 0)
             {
-                system ("CLS");
+                Clear();
                 cout << "\nWelcome " << user->name << "!!" << endl
                         << "Thank you for logging in" << endl
                         << endl;
@@ -1326,7 +1358,7 @@ int main()
     User *user;
     while(true)
     {
-        system ("CLS");
+        Clear();
         user = Login(&userDatabase);
         if(user != NULL)
         {
