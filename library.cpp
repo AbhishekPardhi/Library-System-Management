@@ -89,7 +89,10 @@ class Book
         }
         void Show_duedate()
         {
-            cout << "This book will be available from " << this->dueDate << this->dueMonth << this->dueYear << endl;
+            if(diffTime(this->dueDate,this->dueMonth,this->dueYear)>=0)
+                cout << "\nThis book is available for issue" << endl;
+            else
+                cout << "\nThis book will be available from " << this->dueDate << "/" << this->dueMonth << "/" << this->dueYear << endl;
             return;
         }
 };
@@ -314,10 +317,7 @@ class BookDatabase
             for (int i = 0; i < books.size(); i++)
             {
                 if(books[i].Title.compare(titleString)==0)
-                {
-                    cout << "Found book tiled as \"" << books[i].Title << " \"" << endl;
                     return &books[i];
-                }
             }
             cout << "Book titled as \"" << titleString << " \" doesn't exist!" << endl;
             Book *bookPointer = NULL;
@@ -445,6 +445,16 @@ class User
             return "noooo";
         }
         void RequestBook(int timeLimit, UserDatabase *userDatabase);
+        void DisplayDueDate()
+        {
+            Clear();
+            string bookTitle;
+            cout << "\nPlease type the Book Title: ";
+            getline(cin >> ws, bookTitle);
+            Book* bookPointer = bookDatabase.Search(bookTitle);
+            if(bookPointer!=NULL)
+                bookPointer->Show_duedate();
+        }
         void Display()
         {
             Clear();
@@ -602,7 +612,7 @@ class Student: public User
             int ins;
             string pls = "Please type instruction number :";
             string help = "\n---Type '0' to show set of instructions---";
-            string instructionsSet = "\n-1.Logout\n1.Display all books\n2.Display all your issued books\n3.Check availability/Issue book\n4.Calculate Fine\n5.Clear Fine Amount";
+            string instructionsSet = "\n-1.Logout\n1.Display all books\n2.Display all your issued books\n3.Check availability/Issue book\n4.Check availability of a Book\n5.Calculate Fine\n6.Clear Fine Amount";
             string wrong = "\nWrong instruction number!";
             while(true)
             {
@@ -635,10 +645,14 @@ class Student: public User
                     break;
 
                 case 4:
-                    this->Calculate_fine(this->fineRate);
+                    this->DisplayDueDate();
                     break;
                 
                 case 5:
+                    this->Calculate_fine(this->fineRate);
+                    break;
+
+                case 6:
                     this->Clear_fine_amount(userDatabase);
                     break;
                 
