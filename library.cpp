@@ -1,3 +1,5 @@
+//-------------This code is written by Abhishek Pardhi IIT KANPUR CSE'24--------------
+
 #include <iostream>
 #include <string>
 #include <vector>
@@ -543,7 +545,7 @@ class Professor: public User
             int ins;
             string pls = "Please type instruction number :";
             string help = "\n---Type '0' to show set of instructions---";
-            string instructionsSet = "\n-1.Logout\n1.Display all books\n2.Display all your issued books\n3.Check availability/Issue book\n4.Calculate Fine\n5.Clear Fine Amount\n";
+            string instructionsSet = "\n-1.Logout\n1.Display all books\n2.Display all your issued books\n3.Check availability/Issue book\n4.Check availability of a Book\n5.Calculate Fine\n6.Clear Fine Amount";
             string wrong = "\nWrong instruction number!";
             while(true)
             {
@@ -576,10 +578,14 @@ class Professor: public User
                     break;
 
                 case 4:
-                    this->Calculate_fine(this->fineRate);
+                    this->DisplayDueDate();
                     break;
                 
                 case 5:
+                    this->Calculate_fine(this->fineRate);
+                    break;
+
+                case 6:
                     this->Clear_fine_amount(userDatabase);
                     break;
                 
