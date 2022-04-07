@@ -1120,20 +1120,6 @@ void User::RequestBook(int timeLimit, UserDatabase* userDatabase)
                     << left
                     << setw(MAX_LEN)
                     << bookDatabase.books[i].Publication
-                    //<< bookDatabase.books[i].dueMonth
-                    << diffTime(bookDatabase.books[i].dueDate,bookDatabase.books[i].dueMonth,bookDatabase.books[i].dueYear)
-                    << " "
-                    << bookDatabase.books[i].dueDate
-                    << " "
-                    << bookDatabase.books[i].dueMonth
-                    << " "
-                    << bookDatabase.books[i].dueYear
-                    << " "
-                    // << ltm->tm_mday
-                    // << " "
-                    // << 1 + ltm->tm_mon
-                    // << " "
-                    // << 1900 + ltm->tm_year
                     << endl;
             }
         }
