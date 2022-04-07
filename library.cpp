@@ -54,7 +54,7 @@ class Book
         Book* Book_Request(int timeLimit, string idString)
         {
             Book *book;
-            if(this->dueDate == ltm->tm_mday && this->dueMonth == 1 + ltm->tm_mon && this->dueYear == 1900 + ltm->tm_year)
+            if(diffTime(this->dueDate,this->dueMonth,this->dueYear)>=0)
             {
                 time_t now = time( NULL);
                 struct tm now_tm = *localtime( &now);
@@ -307,7 +307,7 @@ class BookDatabase
             Book *bookPointer = NULL;
             return bookPointer;
         }
-        void Display()
+        void Display(int check)
         {
             system ("CLS");
             if(books.size() == 0)
@@ -326,21 +326,31 @@ class BookDatabase
                     << setw(MAX_LEN)
                     << "Author"
                     << left
-                    << setw(MAX_LEN)
+                    << setw(MAX_LEN - 30)
                     << "ISBN"
                     << left
                     << setw(MAX_LEN)
-                    << "Publication"
-                    << endl;
+                    << "Publication";
+                    if(check)
+                    {
+                        cout
+                        << left
+                        << setw(12)
+                        << "Due Date"
+                        << endl;
+                    }
+                    else
+                        cout << endl;
                 std::string str("");
                 str.insert(0, 4 * MAX_LEN - 11, '-');
                 cout << str << endl;
                 for (int i = 0; i < this->books.size(); i++)
                 {
                     cout
+                        << endl
                         << left
                         << setw(5)
-                        << i+1
+                        << i + 1
                         << left
                         << setw(MAX_LEN)
                         << books[i].Title
@@ -348,12 +358,33 @@ class BookDatabase
                         << setw(MAX_LEN)
                         << books[i].Author
                         << left
-                        << setw(MAX_LEN)
+                        << setw(MAX_LEN - 30)
                         << books[i].ISBN
                         << left
                         << setw(MAX_LEN)
-                        << books[i].Publication
-                        << endl;
+                        << books[i].Publication;
+                        if (check)
+                        {
+                            cout
+                            << left
+                            << setw(2)
+                            << books[i].dueDate
+                            << left
+                            << setw(1)
+                            << "/"
+                            << left
+                            << setw(2)
+                            << books[i].dueMonth
+                            << left
+                            << setw(1)
+                            << "/"
+                            << left
+                            << setw(4)
+                            << books[i].dueYear
+                            << endl;
+                        }
+                        else
+                            cout << endl;
                 }
             }
             return;
@@ -416,7 +447,7 @@ class User
                     << setw(MAX_LEN)
                     << "Author"
                     << left
-                    << setw(MAX_LEN)
+                    << setw(MAX_LEN-30)
                     << "ISBN"
                     << left
                     << setw(MAX_LEN)
@@ -426,11 +457,12 @@ class User
                     << "Due Date"
                     << endl;
                 std::string str("");
-                str.insert(0, 6 + 4 * MAX_LEN, '-');
+                str.insert(0, 4 * MAX_LEN - 11, '-');
                 cout << str << endl;
                 for (int i = 0; i < this->listOfBooks.size(); i++)
                 {
                     cout
+                        << endl
                         << left
                         << setw(5)
                         << i+1
@@ -441,7 +473,7 @@ class User
                         << setw(MAX_LEN)
                         << this->listOfBooks[i]->Author
                         << left
-                        << setw(MAX_LEN)
+                        << setw(MAX_LEN-30)
                         << this->listOfBooks[i]->ISBN
                         << left
                         << setw(MAX_LEN)
@@ -506,7 +538,7 @@ class Professor: public User
                     break;
                 
                 case 1:
-                    bookDatabase.Display();
+                    bookDatabase.Display(0);
                     break;
 
                 case 2:
@@ -575,7 +607,7 @@ class Student: public User
                     break;
                 
                 case 1:
-                    bookDatabase.Display();
+                    bookDatabase.Display(0);
                     break;
 
                 case 2:
@@ -936,6 +968,7 @@ class UserDatabase
             for (int i = 0; i < this->users.size(); i++)
             {
                 cout
+                    << endl
                     << left
                     << setw(5)
                     << i + 1
@@ -1025,23 +1058,21 @@ void User::RequestBook(int timeLimit, UserDatabase* userDatabase)
             << setw(MAX_LEN)
             << "Author"
             << left
-            << setw(MAX_LEN)
+            << setw(MAX_LEN-30)
             << "ISBN"
             << left
             << setw(MAX_LEN)
             << "Publication"
-            << left
-            << setw(12)
-            << "Due Date"
             << endl;
         std::string str("");
-        str.insert(0, 6 + 4 * MAX_LEN, '-');
+        str.insert(0, 4 * MAX_LEN - 11, '-');
         cout << str << endl;
         for (int i = 0; i < bookDatabase.books.size(); i++)
         {
-            if(diffTime(bookDatabase.books[i].dueDate,bookDatabase.books[i].dueMonth,bookDatabase.books[i].dueYear)<=0)
+            if(diffTime(bookDatabase.books[i].dueDate,bookDatabase.books[i].dueMonth,bookDatabase.books[i].dueYear)>=0)
             {
                 cout
+                    << endl
                     << left
                     << setw(5)
                     << i+1
@@ -1052,26 +1083,11 @@ void User::RequestBook(int timeLimit, UserDatabase* userDatabase)
                     << setw(MAX_LEN)
                     << bookDatabase.books[i].Author
                     << left
-                    << setw(MAX_LEN)
+                    << setw(MAX_LEN-30)
                     << bookDatabase.books[i].ISBN
                     << left
                     << setw(MAX_LEN)
                     << bookDatabase.books[i].Publication
-                    << left
-                    << setw(2)
-                    << bookDatabase.books[i].dueDate
-                    << left
-                    << setw(1)
-                    << "/"
-                    << left
-                    << setw(2)
-                    << bookDatabase.books[i].dueMonth
-                    << left
-                    << setw(1)
-                    << "/"
-                    << left
-                    << setw(4)
-                    << bookDatabase.books[i].dueYear
                     << endl;
             }
         }
@@ -1174,7 +1190,7 @@ void Librarian::Instructions(UserDatabase* userDatabase)
             break;
 
         case 3:
-            bookDatabase.Display();
+            bookDatabase.Display(1);
             break;
         
         case 4:
