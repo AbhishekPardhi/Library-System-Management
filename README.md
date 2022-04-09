@@ -1,5 +1,5 @@
 # Library-System-Management
-This is a Library system management implementation in C++ written by ``` Abhishek Pardhi```
+This is a Library system management implementation in C++ written by ``` Abhishek Pardhi```\
 The implementation provides the user with dynamic database updation at the time of running the code.
 ```
 Instructions for running the code:
